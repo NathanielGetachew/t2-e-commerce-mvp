@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ShieldCheck, Clock, ShoppingCart, Plane, Package } from "lucide-react"
 import { useState, useEffect } from "react"
+import { TypewriterEffect } from "@/components/ui/typewriter-effect"
 
 interface HeroProps {
   onStartShopping: () => void
@@ -47,6 +48,12 @@ function FlippingBadge() {
 }
 
 export function Hero({ onStartShopping }: HeroProps) {
+  const headlineWords = [
+    { text: "Where" },
+    { text: "Time", className: "text-primary" },
+    { text: "Meets" },
+    { text: "Trust", className: "text-primary" },
+  ]
   return (
     <section className="relative overflow-hidden bg-background pt-16 md:pt-20 lg:pt-28 pb-16 md:pb-24 border-b">
       {/* Background decoration */}
@@ -59,9 +66,9 @@ export function Hero({ onStartShopping }: HeroProps) {
 
         <FlippingBadge />
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 text-balance max-w-4xl animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-          Where <span className="text-primary">Time</span> Meets <span className="text-primary">Trust</span>
-        </h1>
+        <div className="mb-6 max-w-4xl">
+          <TypewriterEffect words={headlineWords} className="text-5xl md:text-7xl lg:text-8xl" cursorClassName="h-10 md:h-16 lg:h-20 bg-primary" />
+        </div>
 
         <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl text-pretty leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
           Experience the T2 standard. Fast, reliable, and transparent import services designed for your peace of mind.
