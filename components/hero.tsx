@@ -34,12 +34,12 @@ function FlippingBadge() {
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
         <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
       </span>
-      <div className="relative h-7 w-52 sm:w-60 overflow-hidden flex items-center justify-start"> {/* Increased width and height */}
+      <div className="relative h-7 w-64 sm:w-72 overflow-hidden flex items-center justify-start"> {/* Increased width further for mobile text */}
         <div
           className={`flex items-center gap-2.5 transition-all duration-500 transform ${isFlipping ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
         >
           {messages[index].icon}
-          <span>{messages[index].text}</span>
+          <span className="whitespace-nowrap">{messages[index].text}</span>
         </div>
       </div>
     </div>
