@@ -1,8 +1,49 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ShieldCheck, Clock } from "lucide-react"
+import { ArrowRight, ShieldCheck, Clock, ShoppingCart, Plane, Package } from "lucide-react"
+import { useState, useEffect } from "react"
 
 interface HeroProps {
   onStartShopping: () => void
+}
+
+function FlippingBadge() {
+  const [index, setIndex] = useState(0)
+  const [isFlipping, setIsFlipping] = useState(false)
+
+  const messages = [
+    { icon: <ShoppingCart className="w-5 h-5" />, text: "Seamless E-Commerce" },
+    { icon: <Plane className="w-5 h-5" />, text: "China to Ethiopia" },
+    { icon: <Package className="w-5 h-5" />, text: "Fast Delivery" },
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsFlipping(true)
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % messages.length)
+        setIsFlipping(false)
+      }, 300) // Half of the transition time to switch content while invisible/flipping
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-base sm:text-lg font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-sm border border-primary/20">
+      <span className="relative flex h-3 w-3">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+      </span>
+      <div className="relative h-7 w-52 sm:w-60 overflow-hidden flex items-center justify-start"> {/* Increased width and height */}
+        <div
+          className={`flex items-center gap-2.5 transition-all duration-500 transform ${isFlipping ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
+        >
+          {messages[index].icon}
+          <span>{messages[index].text}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function Hero({ onStartShopping }: HeroProps) {
@@ -16,13 +57,7 @@ export function Hero({ onStartShopping }: HeroProps) {
 
       <div className="container relative mx-auto max-w-7xl px-4 flex flex-col items-center text-center">
 
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          Connecting China to Ethiopia
-        </div>
+        <FlippingBadge />
 
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 text-balance max-w-4xl animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
           Where <span className="text-primary">Time</span> Meets <span className="text-primary">Trust</span>
