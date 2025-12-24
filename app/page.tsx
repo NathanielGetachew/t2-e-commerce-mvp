@@ -12,6 +12,22 @@ import { AdminDashboard } from "@/components/admin-dashboard"
 import { ElevenLabsWidget } from "@/components/elevenlabs-widget"
 import { ShoppingCart } from "@/components/shopping-cart"
 import { Checkout } from "@/components/checkout"
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
+
+const TikTok = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+)
 
 export type OrderStatus = "ordered" | "warehouse_china" | "shipped" | "customs_addis" | "delivered"
 
@@ -526,6 +542,28 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {"Your trusted partner for importing quality products from China to Ethiopia."}
                 </p>
+                <div className="flex gap-4 mt-6">
+                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Facebook className="h-5 w-5" />
+                    <span className="sr-only">Facebook</span>
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Twitter className="h-5 w-5" />
+                    <span className="sr-only">Twitter</span>
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Instagram className="h-5 w-5" />
+                    <span className="sr-only">Instagram</span>
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Linkedin className="h-5 w-5" />
+                    <span className="sr-only">LinkedIn</span>
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                    <TikTok className="h-5 w-5" />
+                    <span className="sr-only">TikTok</span>
+                  </a>
+                </div>
               </div>
               <div>
                 <h3 className="font-semibold mb-4">{"Quick Links"}</h3>
