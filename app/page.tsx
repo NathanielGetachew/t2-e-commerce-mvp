@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, createContext, useContext, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
+// import { createClient } from "@/lib/supabase/client" // Removed Supabase client
+// import type { User } from "@supabase/supabase-js" // Removed Supabase User
 import { Header } from "@/components/header"
 import { Hero } from "@/components/hero"
 import { Storefront } from "@/components/storefront"
@@ -13,6 +13,10 @@ import { ElevenLabsWidget } from "@/components/elevenlabs-widget"
 import { ShoppingCart } from "@/components/shopping-cart"
 import { Checkout } from "@/components/checkout"
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
+import { getUser } from "@/app/auth/actions"
+import type { User } from "@/app/auth/actions" // Imported Mock User as User
+import { validateCoupon } from "@/app/actions/coupon-actions"
+
 
 const TikTok = ({ className }: { className?: string }) => (
   <svg
@@ -82,6 +86,9 @@ interface CartContextType {
   totalPrice: number
   wishlist: string[]
   toggleWishlist: (productId: string) => void
+  discount: number
+  couponCode: string | null
+  applyCoupon: (code: string) => Promise<{ success: boolean; message?: string }>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -92,156 +99,7 @@ export const useCart = () => {
   return context
 }
 
-export const MOCK_PRODUCTS: Product[] = [
-  {
-    id: "P001",
-    name: "Industrial Sewing Machine",
-    price: 45000,
-    originalPrice: 52000,
-    category: "Machinery",
-    image: "/industrial-sewing-machine.png",
-    description:
-      "High-speed industrial sewing machine perfect for textile manufacturing. Features automatic thread trimmer and adjustable presser foot.",
-    specifications: {
-      "Max Speed": "5000 SPM",
-      "Motor Power": "550W",
-      Warranty: "2 Years",
-    },
-    rating: 4.5,
-    reviewCount: 23,
-    inStock: true,
-    tags: ["Popular", "Textile"],
-  },
-  {
-    id: "P002",
-    name: "Lenovo ThinkPad X1",
-    price: 85000,
-    originalPrice: 95000,
-    category: "Electronics",
-    image: "/lenovo-thinkpad-laptop.jpg",
-    description: "Premium business laptop with Intel i7 processor, 16GB RAM, and 512GB SSD. Perfect for professionals.",
-    specifications: {
-      Processor: "Intel Core i7",
-      RAM: "16GB",
-      Storage: "512GB SSD",
-      Display: "14-inch FHD",
-    },
-    rating: 4.8,
-    reviewCount: 45,
-    inStock: true,
-    tags: ["Best Seller", "Professional"],
-  },
-  {
-    id: "P003",
-    name: "Solar Inverter 5KW",
-    price: 15000,
-    category: "Energy",
-    image: "/solar-inverter-equipment.jpg",
-    description:
-      "Pure sine wave solar inverter with MPPT controller. Ideal for residential and commercial applications.",
-    specifications: {
-      Capacity: "5000W",
-      "Input Voltage": "DC 48V",
-      Output: "AC 220V",
-      Efficiency: "95%",
-    },
-    rating: 4.3,
-    reviewCount: 18,
-    inStock: true,
-    tags: ["Eco-Friendly"],
-  },
-  {
-    id: "P004",
-    name: "Commercial Food Mixer",
-    price: 32000,
-    category: "Kitchen Equipment",
-    image: "/commercial-food-mixer.jpg",
-    description: "Heavy-duty commercial food mixer with 20L capacity. Stainless steel construction.",
-    specifications: {
-      Capacity: "20 Liters",
-      Power: "1200W",
-      Material: "Stainless Steel",
-      Speeds: "6 Variable",
-    },
-    rating: 4.6,
-    reviewCount: 31,
-    inStock: true,
-    tags: ["Commercial"],
-  },
-  {
-    id: "P005",
-    name: "LED Display Screen 4K",
-    price: 125000,
-    originalPrice: 145000,
-    category: "Electronics",
-    image: "/led-display-screen-4k.jpg",
-    description: "Ultra HD 4K LED display screen, 55-inch, perfect for digital signage and presentations.",
-    specifications: {
-      Resolution: "3840 x 2160",
-      Size: "55 inches",
-      Brightness: "500 nits",
-      "Refresh Rate": "60Hz",
-    },
-    rating: 4.7,
-    reviewCount: 27,
-    inStock: false,
-    tags: ["Premium", "4K"],
-  },
-  {
-    id: "P006",
-    name: "Hydraulic Press Machine",
-    price: 78000,
-    category: "Machinery",
-    image: "/hydraulic-press-machine.jpg",
-    description: "Industrial hydraulic press with 100-ton capacity. Built for heavy-duty metalworking.",
-    specifications: {
-      Capacity: "100 Tons",
-      "Working Area": "600 x 800mm",
-      Motor: "7.5KW",
-      Control: "Manual/Auto",
-    },
-    rating: 4.4,
-    reviewCount: 15,
-    inStock: true,
-    tags: ["Industrial"],
-  },
-  {
-    id: "P007",
-    name: "Coffee Roasting Machine",
-    price: 56000,
-    category: "Kitchen Equipment",
-    image: "/coffee-roaster.jpg",
-    description: "Professional coffee roasting machine with 5kg capacity per batch.",
-    specifications: {
-      "Batch Size": "5kg",
-      "Heat Source": "Gas/Electric",
-      "Drum Material": "Stainless Steel",
-      "Cooling System": "Air Cooled",
-    },
-    rating: 4.5,
-    reviewCount: 19,
-    inStock: true,
-    tags: ["Popular", "Coffee"],
-  },
-  {
-    id: "P008",
-    name: "CNC Router Machine",
-    price: 185000,
-    category: "Machinery",
-    image: "/cnc-router.jpg",
-    description: "3-axis CNC router for woodworking and plastic processing with 1325 work area.",
-    specifications: {
-      "Work Area": "1300 x 2500mm",
-      Spindle: "3.2KW Water Cooled",
-      Control: "DSP",
-      "Z-Axis Travel": "200mm",
-    },
-    rating: 4.6,
-    reviewCount: 12,
-    inStock: true,
-    tags: ["Professional", "CNC"],
-  },
-]
+// MOCK_PRODUCTS removed - fetched dynamically
 
 export const INITIAL_ORDERS: Order[] = [
   {
@@ -283,7 +141,8 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("home")
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const supabase = createClient()
+  const [products, setProducts] = useState<Product[]>([])
+  // const supabase = createClient() // Removed
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS)
   const [searchOrderId, setSearchOrderId] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -293,6 +152,8 @@ export default function HomePage() {
   const [showCheckout, setShowCheckout] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [discount, setDiscount] = useState(0)
+  const [couponCode, setCouponCode] = useState<string | null>(null)
 
   const addToCart = (product: Product, quantity = 1) => {
     setCart((prevCart) => {
@@ -327,7 +188,29 @@ export default function HomePage() {
   }
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
-  const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const totalPrice = subtotal * (1 - discount / 100)
+
+  const applyCoupon = async (code: string) => {
+    // Validate against the first product for now, or generally. 
+    // The action expects a productId if specific, but we'll use a generic check or check cart items.
+    // For simplicity, we just pass an empty string for productId if generic, or check explicitly.
+    // Our action validation: if coupon has targetProductId, it checks it.
+
+    // Check if any item in cart matches target product? 
+    // For this MVP, we'll assume global coupons or just validate against first item if needed.
+    // Actually, let's just pass "" as productId for now to check validity code-wise.
+    // If we want item-specific, we'd need more complex logic.
+
+    const result = await validateCoupon(code, "")
+    if (result.error) {
+      return { success: false, message: result.error }
+    }
+
+    setDiscount(result.discountPercentage || 0)
+    setCouponCode(code)
+    return { success: true }
+  }
 
   const handleStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
     setOrders((prevOrders) =>
@@ -346,7 +229,7 @@ export default function HomePage() {
     setShowCheckout(true)
   }
 
-  const filteredProducts = MOCK_PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -354,7 +237,7 @@ export default function HomePage() {
     return matchesCategory && matchesSearch
   })
 
-  const categories = ["all", ...Array.from(new Set(MOCK_PRODUCTS.map((p) => p.category)))]
+  const categories = ["all", ...Array.from(new Set(products.map((p) => p.category)))]
 
   const cartContextValue: CartContextType = {
     cart,
@@ -366,22 +249,21 @@ export default function HomePage() {
     totalPrice,
     wishlist,
     toggleWishlist,
+    discount,
+    couponCode,
+    applyCoupon
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    getUser().then((user) => {
       setUser(user)
-      setIsAdmin(user?.user_metadata?.is_admin === true)
+      setIsAdmin(user?.role === "admin" || user?.role === "super-admin")
     })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setIsAdmin(session?.user?.user_metadata?.is_admin === true)
+    // Fetch products
+    import("@/app/actions/product-actions").then(({ getProducts }) => {
+      getProducts().then(setProducts)
     })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -398,137 +280,233 @@ export default function HomePage() {
           onTabChange={setActiveTab}
           cartCount={totalItems}
           onCartClick={() => setShowCart(true)}
+          user={user}
+          isAdmin={isAdmin}
         />
 
         <main>
-          {activeTab === "home" && (
+          {!user ? (
+            // Guest View
             <>
-              <Hero
-                onStartShopping={() => setActiveTab("shop")}
-              />
+              <section className="relative py-32 px-4 flex flex-col items-center justify-center text-center overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
 
-              <section className="py-20 px-4 bg-gradient-to-b from-muted/30 to-background">
-                <div className="container mx-auto max-w-7xl">
-                  <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">{"Why Choose T2?"}</h2>
-                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-                      {"We combine Time and Trust to deliver exceptional import services from China to Ethiopia."}
-                    </p>
+                <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-1000">
+                  <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Global Trade, <br />
+                    <span className="text-primary">Simplified.</span>
+                  </h1>
+                  <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                    Your trusted partner for seamless importing from China to Ethiopia.
+                    We handle sourcing, logistics, and delivery so you can focus on growth.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                    <a
+                      href="/auth/sign-up"
+                      className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      Get Started
+                    </a>
+                    <a
+                      href="/auth/login"
+                      className="inline-flex h-12 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      Member Login
+                    </a>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                    <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                          <polyline points="12 6 12 12 16 14" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Fast Delivery"}</h3>
-                      <p className="text-muted-foreground text-center leading-relaxed">
-                        {"Track your shipment in real-time from China to your doorstep. Transparency at every stage."}
-                      </p>
+                  <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-sm text-muted-foreground">
+                    <div>
+                      <div className="font-bold text-2xl text-foreground mb-1">5K+</div>
+                      <div>Successful Orders</div>
                     </div>
-
-                    <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                            strokeWidth="2"
-                            strokeLinejoin="round"
-                          />
-                          <path d="m9 12 2 2 4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Quality Assured"}</h3>
-                      <p className="text-muted-foreground text-center leading-relaxed">
-                        {
-                          "Secure handling, quality assurance, and reliable delivery. Your business partner you can count on."
-                        }
-                      </p>
+                    <div>
+                      <div className="font-bold text-2xl text-foreground mb-1">98%</div>
+                      <div>On-Time Delivery</div>
                     </div>
-
-                    <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="bg-[#F59E0B]/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
-                        <svg className="w-8 h-8 text-[#F59E0B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2L2 7l10 5 10-5-10-5z" strokeWidth="2" strokeLinejoin="round" />
-                          <path d="M2 17l10 5 10-5" strokeWidth="2" strokeLinejoin="round" />
-                          <path d="M2 12l10 5 10-5" strokeWidth="2" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Best Prices"}</h3>
-                      <p className="text-muted-foreground text-center leading-relaxed">
-                        {
-                          "Direct sourcing from manufacturers. Competitive rates and transparent pricing on all products."
-                        }
-                      </p>
+                    <div>
+                      <div className="font-bold text-2xl text-foreground mb-1">24/7</div>
+                      <div>Customer Support</div>
+                    </div>
+                    <div>
+                      <div className="font-bold text-2xl text-foreground mb-1">100%</div>
+                      <div>Secure Payment</div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <section className="py-20 px-4">
-                <div className="container mx-auto max-w-7xl">
-                  <div className="text-center mb-12">
-                    <h2 className="text-4xl font-bold text-foreground mb-4">{"Featured Products"}</h2>
-                    <p className="text-muted-foreground text-lg">
-                      {"Explore our curated selection of quality products from China"}
+              <section className="py-24 bg-muted/30">
+                <div className="container mx-auto max-w-7xl px-4">
+                  <div className="text-center mb-16">
+                    <h2 className="text-3xl font-bold tracking-tight mb-4">Why Choose T2?</h2>
+                    <p className="text-muted-foreground max-w-2xl mx-auto">
+                      Experience the difference of a professional logistics partner committed to your success.
                     </p>
                   </div>
-                  <Storefront products={MOCK_PRODUCTS.slice(0, 6)} onProductClick={handleProductClick} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="bg-card p-8 rounded-xl border shadow-sm">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z" /><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" /><path d="M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2" /><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2" /></svg>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-3">Live Tracking</h3>
+                      <p className="text-muted-foreground">Monitor your shipments in real-time from our warehouse in China to your doorstep in Addis.</p>
+                    </div>
+                    <div className="bg-card p-8 rounded-xl border shadow-sm">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-3">Fast Delivery</h3>
+                      <p className="text-muted-foreground">Optimized logistics routes ensure your goods arrive faster and safer than ever before.</p>
+                    </div>
+                    <div className="bg-card p-8 rounded-xl border shadow-sm">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-3">Best Prices</h3>
+                      <p className="text-muted-foreground">Direct access to manufacturers means you save more on every order without compromising quality.</p>
+                    </div>
+                  </div>
                 </div>
               </section>
             </>
-          )}
+          ) : (
+            // Logged-in User View
+            <>
+              {activeTab === "home" && (
+                <>
+                  <Hero
+                    onStartShopping={() => setActiveTab("shop")}
+                  />
+                  {/* ... existing home content ... */}
+                  <section className="py-20 px-4 bg-gradient-to-b from-muted/30 to-background">
+                    <div className="container mx-auto max-w-7xl">
+                      <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">{"Why Choose T2?"}</h2>
+                        <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+                          {"We combine Time and Trust to deliver exceptional import services from China to Ethiopia."}
+                        </p>
+                      </div>
 
-          {activeTab === "track" && (
-            <div className="py-16 px-4">
-              <div className="container mx-auto max-w-5xl">
-                <TrackingView orders={orders} initialSearchId={searchOrderId} onSearchIdChange={setSearchOrderId} />
-              </div>
-            </div>
-          )}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                          <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                              <polyline points="12 6 12 12 16 14" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          </div>
+                          <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Fast Delivery"}</h3>
+                          <p className="text-muted-foreground text-center leading-relaxed">
+                            {"Track your shipment in real-time from China to your doorstep. Transparency at every stage."}
+                          </p>
+                        </div>
 
-          {activeTab === "shop" && (
-            <div className="py-16 px-4">
-              <div className="container mx-auto max-w-7xl">
-                <Storefront
-                  products={filteredProducts}
-                  onProductClick={handleProductClick}
-                  categories={categories}
-                  selectedCategory={categoryFilter}
-                  onCategoryChange={setCategoryFilter}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                />
-              </div>
-            </div>
-          )}
+                        <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                          <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                                strokeWidth="2"
+                                strokeLinejoin="round"
+                              />
+                              <path d="m9 12 2 2 4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Quality Assured"}</h3>
+                          <p className="text-muted-foreground text-center leading-relaxed">
+                            {
+                              "Secure handling, quality assurance, and reliable delivery. Your business partner you can count on."
+                            }
+                          </p>
+                        </div>
 
-          {activeTab === "admin" && isAdmin && (
-            <div className="py-16 px-4">
-              <div className="container mx-auto max-w-6xl">
-                <AdminDashboard orders={orders} onStatusUpdate={handleStatusUpdate} />
-              </div>
-            </div>
-          )}
+                        <div className="bg-card border rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                          <div className="bg-[#F59E0B]/10 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <svg className="w-8 h-8 text-[#F59E0B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L2 7l10 5 10-5-10-5z" strokeWidth="2" strokeLinejoin="round" />
+                              <path d="M2 17l10 5 10-5" strokeWidth="2" strokeLinejoin="round" />
+                              <path d="M2 12l10 5 10-5" strokeWidth="2" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <h3 className="font-semibold text-xl mb-3 text-foreground text-center">{"Best Prices"}</h3>
+                          <p className="text-muted-foreground text-center leading-relaxed">
+                            {
+                              "Direct sourcing from manufacturers. Competitive rates and transparent pricing on all products."
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
-          {activeTab === "admin" && !isAdmin && (
-            <div className="py-16 px-4">
-              <div className="container mx-auto max-w-2xl text-center">
-                <div className="bg-card border rounded-xl p-12">
-                  <h2 className="text-2xl font-bold mb-4">{"Access Denied"}</h2>
-                  <p className="text-muted-foreground mb-6">{"You need admin privileges to access this section."}</p>
-                  <button
-                    onClick={() => setActiveTab("home")}
-                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-                  >
-                    {"Go to Home"}
-                  </button>
+                  <section className="py-20 px-4">
+                    <div className="container mx-auto max-w-7xl">
+                      <div className="text-center mb-12">
+                        <h2 className="text-4xl font-bold text-foreground mb-4">{"Featured Products"}</h2>
+                        <p className="text-muted-foreground text-lg">
+                          {"Explore our curated selection of quality products from China"}
+                        </p>
+                      </div>
+                      <Storefront products={products.slice(0, 6)} onProductClick={handleProductClick} />
+                    </div>
+                  </section>
+                </>
+              )}
+
+              {activeTab === "track" && (
+                <div className="py-16 px-4">
+                  <div className="container mx-auto max-w-5xl">
+                    <TrackingView orders={orders} initialSearchId={searchOrderId} onSearchIdChange={setSearchOrderId} />
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+
+              {activeTab === "shop" && (
+                <div className="py-16 px-4">
+                  <div className="container mx-auto max-w-7xl">
+                    <Storefront
+                      products={filteredProducts}
+                      onProductClick={handleProductClick}
+                      categories={categories}
+                      selectedCategory={categoryFilter}
+                      onCategoryChange={setCategoryFilter}
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "admin" && isAdmin && (
+                <div className="py-16 px-4">
+                  <div className="container mx-auto max-w-6xl">
+                    <AdminDashboard orders={orders} onStatusUpdate={handleStatusUpdate} user={user} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "admin" && !isAdmin && (
+                <div className="py-16 px-4">
+                  <div className="container mx-auto max-w-2xl text-center">
+                    <div className="bg-card border rounded-xl p-12">
+                      <h2 className="text-2xl font-bold mb-4">{"Access Denied"}</h2>
+                      <p className="text-muted-foreground mb-6">{"You need admin privileges to access this section."}</p>
+                      <button
+                        onClick={() => setActiveTab("home")}
+                        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                      >
+                        {"Go to Home"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </main>
 

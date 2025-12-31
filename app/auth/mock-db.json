@@ -1,0 +1,26 @@
+[
+  {
+    "id": "super-admin-id",
+    "email": "superuser@t2.com",
+    "password": "password",
+    "fullName": "Super Administrator",
+    "phone": "0000000000",
+    "role": "super-admin"
+  },
+  {
+    "id": "default-admin-id",
+    "email": "admin@t2.com",
+    "password": "password",
+    "fullName": "Default Admin",
+    "phone": "0911000000",
+    "role": "admin"
+  },
+  {
+    "id": "default-customer-id",
+    "email": "customer@t2.com",
+    "password": "password",
+    "fullName": "Default Customer",
+    "phone": "0912000000",
+    "role": "customer"
+  }
+]

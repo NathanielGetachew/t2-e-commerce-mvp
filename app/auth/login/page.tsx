@@ -33,8 +33,7 @@ export default function Page() {
         throw new Error(result.error)
       }
 
-      const isAdmin = email.includes("admin")
-      if (isAdmin) {
+      if (result.role === "admin" || result.role === "super-admin") {
         router.push("/admin")
       } else {
         router.push("/")

@@ -1,49 +1,29 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Menu, X, ShoppingCart, LogOut, User } from "lucide-react"
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
+// import type { User as SupabaseUser } from "@supabase/supabase-js" // Removing
+import type { User as MockUser } from "@/app/auth/actions"
+import { signOut } from "@/app/auth/actions"
 
 interface HeaderProps {
   activeTab: string
   onTabChange: (tab: string) => void
   cartCount?: number
   onCartClick?: () => void
+  user: MockUser | null
+  isAdmin: boolean
 }
 
-export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick }: HeaderProps) {
+export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, user, isAdmin }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
-
-  useEffect(() => {
-    // Get initial user
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-      setIsAdmin(user?.user_metadata?.is_admin === true)
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setIsAdmin(session?.user?.user_metadata?.is_admin === true)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push("/")
-    onTabChange("home")
+    window.location.reload() // Force reload to clear client state if any
   }
 
   const navItems = [
@@ -101,7 +81,7 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick }: H
                 <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span className="text-sm">
-                    {user.user_metadata?.full_name || user.email?.split("@")[0] || "User"}
+                    {user.fullName || user.email?.split("@")[0] || "User"}
                   </span>
                   {isAdmin && (
                     <Badge variant="secondary" className="text-xs">

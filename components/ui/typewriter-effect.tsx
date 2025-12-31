@@ -8,6 +8,7 @@ export const TypewriterEffect = ({
     words,
     className,
     cursorClassName,
+    cursorNode,
 }: {
     words: {
         text: string
@@ -15,6 +16,7 @@ export const TypewriterEffect = ({
     }[]
     className?: string
     cursorClassName?: string
+    cursorNode?: React.ReactNode
 }) => {
     // Split words into characters
     const wordsArray = words.map((word) => {
@@ -86,10 +88,13 @@ export const TypewriterEffect = ({
                     repeatType: "reverse",
                 }}
                 className={cn(
-                    "inline-block rounded-sm w-[4px] h-4 md:h-6 lg:h-10 bg-blue-500 align-middle ml-1",
+                    "inline-block align-middle ml-2",
+                    !cursorNode && "rounded-sm w-[4px] h-4 md:h-6 lg:h-10 bg-blue-500",
                     cursorClassName
                 )}
-            ></motion.span>
+            >
+                {cursorNode}
+            </motion.span>
         </div>
     )
 }

@@ -1,30 +1,89 @@
 "use server"
 
 import { cookies } from "next/headers"
+import fs from "fs/promises"
+import path from "path"
+import { v4 as uuidv4 } from "uuid"
 
-// MOCK CONSTANTS
+// CONSTANTS
 const MOCK_SESSION_COOKIE = "mock-auth-session"
+const DB_PATH = path.join(process.cwd(), "app/auth/mock-db.json")
+
+export type UserRole = "customer" | "admin" | "super-admin"
+
+export interface User {
+    id: string
+    email: string
+    password: string // Storing plain text for MOCK purposes only
+    fullName: string
+    phone: string
+    role: UserRole
+}
+
+const DEFAULT_SUPER_USER: User = {
+    id: "super-admin-id",
+    email: "superuser@t2.com",
+    password: "password",
+    fullName: "Super Administrator",
+    phone: "0000000000",
+    role: "super-admin"
+}
+
+// Helper to read/write DB
+async function getDB(): Promise<User[]> {
+    try {
+        await fs.access(DB_PATH)
+        const data = await fs.readFile(DB_PATH, "utf-8")
+        return JSON.parse(data)
+    } catch {
+        // If file doesn't exist, create it with super user
+        const initialData = [DEFAULT_SUPER_USER]
+        await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2))
+        return initialData
+    }
+}
+
+async function writeDB(users: User[]) {
+    await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2))
+}
 
 export async function signUp(data: {
     email: string
     password: string
     fullName: string
     phone: string
-    isAdmin: boolean
+    // isAdmin is removed from public sign up, defaulting to customer
 }) {
     console.log("SIMULATED Action: signUp called for", data.email)
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500))
 
     try {
-        const cookieStore = await cookies()
+        const users = await getDB()
 
-        // Set a mock session cookie
-        cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
+        if (users.find(u => u.email === data.email)) {
+            return { error: "User with this email already exists" }
+        }
+
+        const newUser: User = {
+            id: uuidv4(),
             email: data.email,
-            full_name: data.fullName,
-            is_admin: data.isAdmin,
+            password: data.password,
+            fullName: data.fullName,
+            phone: data.phone,
+            role: "customer"
+        }
+
+        users.push(newUser)
+        await writeDB(users)
+
+        // Auto login after sign up
+        const cookieStore = await cookies()
+        cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
+            id: newUser.id,
+            email: newUser.email,
+            full_name: newUser.fullName,
+            role: newUser.role,
             simulated: true
         }), {
             path: '/',
@@ -49,12 +108,19 @@ export async function signIn(data: {
     await new Promise(resolve => setTimeout(resolve, 500))
 
     try {
-        const cookieStore = await cookies()
+        const users = await getDB()
+        const user = users.find(u => u.email === data.email && u.password === data.password)
 
+        if (!user) {
+            return { error: "Invalid credentials" }
+        }
+
+        const cookieStore = await cookies()
         cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
-            email: data.email,
-            full_name: "Mock User",
-            is_admin: data.email.includes("admin"),
+            id: user.id,
+            email: user.email,
+            full_name: user.fullName,
+            role: user.role,
             simulated: true
         }), {
             path: '/',
@@ -63,10 +129,68 @@ export async function signIn(data: {
             maxAge: 60 * 60 * 24 * 7
         })
 
-        return { success: true }
+        return { success: true, role: user.role }
     } catch (error) {
         console.error("Simulation error:", error)
         return { error: "An unexpected error occurred during simulated login" }
+    }
+}
+
+export async function createAdmin(data: {
+    email: string
+    password: string
+    fullName: string
+    phone: string
+}) {
+    console.log("SIMULATED Action: createAdmin called for", data.email)
+
+    // Authorization check
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
+    if (!sessionCookie) {
+        return { error: "Unauthorized" }
+    }
+    const session = JSON.parse(sessionCookie.value)
+    if (session.role !== "super-admin") {
+        return { error: "Only Super Admin can create admins" }
+    }
+
+    try {
+        const users = await getDB()
+
+        if (users.find(u => u.email === data.email)) {
+            return { error: "User with this email already exists" }
+        }
+
+        const newAdmin: User = {
+            id: uuidv4(),
+            email: data.email,
+            password: data.password,
+            fullName: data.fullName,
+            phone: data.phone,
+            role: "admin"
+        }
+
+        users.push(newAdmin)
+        await writeDB(users)
+
+        return { success: true }
+    } catch (error) {
+        console.error("Simulation error:", error)
+        return { error: "Failed to create admin" }
+    }
+}
+
+export async function getUser() {
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
+    if (!sessionCookie) {
+        return null
+    }
+    try {
+        return JSON.parse(sessionCookie.value)
+    } catch {
+        return null
     }
 }
 

@@ -1,19 +1,14 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { getUser } from "../auth/actions"
 
 export default async function AdminPage() {
-  const supabase = await createClient()
+  const user = await getUser()
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
+  if (!user) {
     redirect("/auth/login")
   }
 
-  const isAdmin = user.user_metadata?.is_admin === true
+  const isAdmin = user.role === "admin" || user.role === "super-admin"
 
   if (!isAdmin) {
     redirect("/")

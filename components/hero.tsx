@@ -67,7 +67,12 @@ export function Hero({ onStartShopping }: HeroProps) {
         <FlippingBadge />
 
         <div className="mb-6 max-w-4xl">
-          <TypewriterEffect words={headlineWords} className="text-5xl md:text-7xl lg:text-8xl" cursorClassName="h-10 md:h-16 lg:h-20 bg-primary" />
+          <TypewriterEffect
+            words={headlineWords}
+            className="text-5xl md:text-7xl lg:text-8xl"
+            cursorClassName="text-primary"
+            cursorNode={<ShoppingCart className="h-10 w-10 md:h-16 md:w-16 lg:h-20 lg:w-20" />}
+          />
         </div>
 
         <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl text-pretty leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">

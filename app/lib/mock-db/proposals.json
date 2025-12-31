@@ -1,0 +1,37 @@
+[
+  {
+    "id": "6ed3b43b-81d5-438a-a818-c3b9604e0193",
+    "type": "add",
+    "status": "approved",
+    "productData": {
+      "name": "an Electric Bike",
+      "price": 40000,
+      "category": "Electric vehicles,motor cycle",
+      "description": "a modern electric bike that far better than the ones in the market",
+      "image": "/placeholder.svg"
+    },
+    "proposedBy": "admin@t2.com",
+    "proposedAt": "2025-12-31T08:08:50.921Z"
+  },
+  {
+    "id": "67285194-7eca-401e-836e-6b2a9068c0b2",
+    "type": "update",
+    "status": "approved",
+    "productData": {
+      "id": "25baefde-880d-4fd5-bddf-4a9921ca28ef",
+      "name": "an Electric Bike",
+      "price": 40000,
+      "category": "Electric vehicles,motor cycle",
+      "image": "/product-images/b068b850-0872-4ee6-8910-1594a44eefd3-cool-bicycle-studio.jpg",
+      "description": "a modern electric bike that far better than the ones in the market",
+      "specifications": {},
+      "rating": 0,
+      "reviewCount": 0,
+      "inStock": true,
+      "tags": []
+    },
+    "targetProductId": "25baefde-880d-4fd5-bddf-4a9921ca28ef",
+    "proposedBy": "superuser@t2.com",
+    "proposedAt": "2025-12-31T08:31:44.892Z"
+  }
+]

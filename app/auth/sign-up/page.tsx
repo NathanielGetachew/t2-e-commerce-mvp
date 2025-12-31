@@ -17,7 +17,6 @@ export default function Page() {
   const [repeatPassword, setRepeatPassword] = useState("")
   const [fullName, setFullName] = useState("")
   const [phone, setPhone] = useState("")
-  const [accountType, setAccountType] = useState<"customer" | "admin">("customer")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -39,7 +38,6 @@ export default function Page() {
         password,
         fullName,
         phone,
-        isAdmin: accountType === "admin",
       })
 
       if (result.error) {
@@ -124,33 +122,6 @@ export default function Page() {
                       value={repeatPassword}
                       onChange={(e) => setRepeatPassword(e.target.value)}
                     />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label>{"Account Type"}</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={accountType === "customer" ? "default" : "outline"}
-                        className="flex-1"
-                        onClick={() => setAccountType("customer")}
-                      >
-                        {"Customer"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={accountType === "admin" ? "default" : "outline"}
-                        className="flex-1"
-                        onClick={() => setAccountType("admin")}
-                      >
-                        {"Admin"}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {accountType === "admin"
-                        ? "Admin accounts can manage orders and view analytics"
-                        : "Customer accounts can browse products and place orders"}
-                    </p>
                   </div>
 
                   {error && <p className="text-sm text-red-500">{error}</p>}

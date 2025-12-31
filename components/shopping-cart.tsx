@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react"
 import { useCart } from "@/app/page"
+import { useState } from "react"
 
 interface ShoppingCartProps {
   onClose: () => void
@@ -11,7 +13,23 @@ interface ShoppingCartProps {
 }
 
 export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
-  const { cart, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart()
+  const { cart, removeFromCart, updateQuantity, totalPrice, totalItems, applyCoupon, discount, couponCode } = useCart()
+  const [code, setCode] = useState("")
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleApplyCoupon = async () => {
+    if (!code) return
+    setLoading(true)
+    setMessage(null)
+    const result = await applyCoupon(code)
+    setLoading(false)
+    if (result.success) {
+      setMessage({ text: "Coupon applied successfully!", type: "success" })
+    } else {
+      setMessage({ text: result.message || "Invalid coupon", type: "error" })
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
@@ -98,13 +116,46 @@ export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
         {/* Footer */}
         {cart.length > 0 && (
           <div className="border-t p-6 space-y-4">
+            {/* Coupon Input */}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Coupon Code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  disabled={discount > 0}
+                />
+                <Button onClick={handleApplyCoupon} disabled={loading || !code || discount > 0}>
+                  {loading ? "..." : discount > 0 ? "Applied" : "Apply"}
+                </Button>
+              </div>
+              {message && (
+                <p className={`text-xs ${message.type === "success" ? "text-green-600" : "text-red-500"}`}>
+                  {message.text}
+                </p>
+              )}
+              {discount > 0 && (
+                <div className="text-sm text-green-600 font-medium">
+                  Coupon {couponCode} applied: {discount}% off
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{"Subtotal"}</span>
                 <span className="font-medium">
-                  {totalPrice.toLocaleString()} {"ETB"}
+                  {(totalPrice / (1 - discount / 100)).toLocaleString()} {"ETB"}
                 </span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>{"Discount"}</span>
+                  <span>
+                    - {(totalPrice / (1 - discount / 100) * (discount / 100)).toLocaleString()} {"ETB"}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{"Shipping"}</span>
                 <span className="font-medium">{"Calculated at checkout"}</span>

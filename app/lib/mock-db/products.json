@@ -1,0 +1,182 @@
+[
+  {
+    "id": "P001",
+    "name": "Industrial Sewing Machine",
+    "price": 45000,
+    "originalPrice": 52000,
+    "category": "Machinery",
+    "image": "/industrial-sewing-machine.png",
+    "description": "High-speed industrial sewing machine perfect for textile manufacturing. Features automatic thread trimmer and adjustable presser foot.",
+    "specifications": {
+      "Max Speed": "5000 SPM",
+      "Motor Power": "550W",
+      "Warranty": "2 Years"
+    },
+    "rating": 4.5,
+    "reviewCount": 23,
+    "inStock": true,
+    "tags": [
+      "Popular",
+      "Textile"
+    ]
+  },
+  {
+    "id": "P002",
+    "name": "Lenovo ThinkPad X1",
+    "price": 85000,
+    "originalPrice": 95000,
+    "category": "Electronics",
+    "image": "/lenovo-thinkpad-laptop.jpg",
+    "description": "Premium business laptop with Intel i7 processor, 16GB RAM, and 512GB SSD. Perfect for professionals.",
+    "specifications": {
+      "Processor": "Intel Core i7",
+      "RAM": "16GB",
+      "Storage": "512GB SSD",
+      "Display": "14-inch FHD"
+    },
+    "rating": 4.8,
+    "reviewCount": 45,
+    "inStock": true,
+    "tags": [
+      "Best Seller",
+      "Professional"
+    ]
+  },
+  {
+    "id": "P003",
+    "name": "Solar Inverter 5KW",
+    "price": 15000,
+    "category": "Energy",
+    "image": "/solar-inverter-equipment.jpg",
+    "description": "Pure sine wave solar inverter with MPPT controller. Ideal for residential and commercial applications.",
+    "specifications": {
+      "Capacity": "5000W",
+      "Input Voltage": "DC 48V",
+      "Output": "AC 220V",
+      "Efficiency": "95%"
+    },
+    "rating": 4.3,
+    "reviewCount": 18,
+    "inStock": true,
+    "tags": [
+      "Eco-Friendly"
+    ]
+  },
+  {
+    "id": "P004",
+    "name": "Commercial Food Mixer",
+    "price": 32000,
+    "category": "Kitchen Equipment",
+    "image": "/commercial-food-mixer.jpg",
+    "description": "Heavy-duty commercial food mixer with 20L capacity. Stainless steel construction.",
+    "specifications": {
+      "Capacity": "20 Liters",
+      "Power": "1200W",
+      "Material": "Stainless Steel",
+      "Speeds": "6 Variable"
+    },
+    "rating": 4.6,
+    "reviewCount": 31,
+    "inStock": true,
+    "tags": [
+      "Commercial"
+    ]
+  },
+  {
+    "id": "P005",
+    "name": "LED Display Screen 4K",
+    "price": 125000,
+    "originalPrice": 145000,
+    "category": "Electronics",
+    "image": "/led-display-screen-4k.jpg",
+    "description": "Ultra HD 4K LED display screen, 55-inch, perfect for digital signage and presentations.",
+    "specifications": {
+      "Resolution": "3840 x 2160",
+      "Size": "55 inches",
+      "Brightness": "500 nits",
+      "Refresh Rate": "60Hz"
+    },
+    "rating": 4.7,
+    "reviewCount": 27,
+    "inStock": false,
+    "tags": [
+      "Premium",
+      "4K"
+    ]
+  },
+  {
+    "id": "P006",
+    "name": "Hydraulic Press Machine",
+    "price": 78000,
+    "category": "Machinery",
+    "image": "/hydraulic-press-machine.jpg",
+    "description": "Industrial hydraulic press with 100-ton capacity. Built for heavy-duty metalworking.",
+    "specifications": {
+      "Capacity": "100 Tons",
+      "Working Area": "600 x 800mm",
+      "Motor": "7.5KW",
+      "Control": "Manual/Auto"
+    },
+    "rating": 4.4,
+    "reviewCount": 15,
+    "inStock": true,
+    "tags": [
+      "Industrial"
+    ]
+  },
+  {
+    "id": "P007",
+    "name": "Coffee Roasting Machine",
+    "price": 56000,
+    "category": "Kitchen Equipment",
+    "image": "/coffee-roaster.jpg",
+    "description": "Professional coffee roasting machine with 5kg capacity per batch.",
+    "specifications": {
+      "Batch Size": "5kg",
+      "Heat Source": "Gas/Electric",
+      "Drum Material": "Stainless Steel",
+      "Cooling System": "Air Cooled"
+    },
+    "rating": 4.5,
+    "reviewCount": 19,
+    "inStock": true,
+    "tags": [
+      "Popular",
+      "Coffee"
+    ]
+  },
+  {
+    "id": "P008",
+    "name": "CNC Router Machine",
+    "price": 185000,
+    "category": "Machinery",
+    "image": "/cnc-router.jpg",
+    "description": "3-axis CNC router for woodworking and plastic processing with 1325 work area.",
+    "specifications": {
+      "Work Area": "1300 x 2500mm",
+      "Spindle": "3.2KW Water Cooled",
+      "Control": "DSP",
+      "Z-Axis Travel": "200mm"
+    },
+    "rating": 4.6,
+    "reviewCount": 12,
+    "inStock": true,
+    "tags": [
+      "Professional",
+      "CNC"
+    ]
+  },
+  {
+    "id": "25baefde-880d-4fd5-bddf-4a9921ca28ef",
+    "name": "an Electric Bike",
+    "price": 40000,
+    "category": "Electric vehicles,motor cycle",
+    "image": "/product-images/b068b850-0872-4ee6-8910-1594a44eefd3-cool-bicycle-studio.jpg",
+    "description": "a modern electric bike that far better than the ones in the market",
+    "specifications": {},
+    "rating": 0,
+    "reviewCount": 0,
+    "inStock": true,
+    "tags": []
+  }
+]
