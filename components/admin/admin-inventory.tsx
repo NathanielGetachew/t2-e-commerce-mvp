@@ -41,7 +41,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
             getProposals()
         ])
         setProducts(productsData)
-        setProposals(proposalsData)
+        setProposals(proposalsData.filter(p => p.status === 'pending'))
         setLoading(false)
     }
 
