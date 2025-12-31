@@ -158,7 +158,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
                         <CardTitle>Order Distribution</CardTitle>
                         <CardDescription>Status breakdown of current orders</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-center">
+                    <CardContent className="flex items-center justify-center gap-6">
                         <ChartContainer
                             config={{ orders: { label: "Orders" } }}
                             className="h-[250px] w-[250px]"
@@ -172,7 +172,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
                                 </Pie>
                             </PieChart>
                         </ChartContainer>
-                        <div className="ml-8 space-y-2 flex-1">
+                        <div className="space-y-2 flex-1">
                             {statusDistribution.map((item) => (
                                 <div key={item.name} className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />

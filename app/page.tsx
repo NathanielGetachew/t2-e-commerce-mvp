@@ -503,7 +503,7 @@ export default function HomePage() {
               )}
 
               {activeTab === "admin" && isAdmin && (
-                <div className="py-16 px-4">
+                <div className="pt-28 pb-16 px-4">
                   <div className="container mx-auto max-w-6xl">
                     <AdminDashboard orders={orders} onStatusUpdate={handleStatusUpdate} user={user} />
                   </div>
