@@ -288,9 +288,9 @@ export default function HomePage() {
           {!user ? (
             // Guest View
             <>
-              <section className="relative h-[90vh] flex flex-col items-center justify-center text-center overflow-hidden">
+              <section className="relative min-h-screen flex flex-col items-center justify-center text-center overflow-hidden pt-20 pb-10">
                 {/* Background Image with Overlay */}
-                <div className="absolute inset-0 -z-10">
+                <div className="absolute inset-0">
                   <img
                     src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop"
                     alt="Background"
