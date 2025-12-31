@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Menu, X, ShoppingCart, LogOut, User } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 // import type { User as SupabaseUser } from "@supabase/supabase-js" // Removing
 import type { User as MockUser } from "@/app/auth/actions"
 import { signOut } from "@/app/auth/actions"
+import { cn } from "@/lib/utils"
 
 interface HeaderProps {
   activeTab: string
@@ -18,7 +19,16 @@ interface HeaderProps {
 
 export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, user, isAdmin }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()
@@ -33,15 +43,28 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
     { id: "admin", label: "Admin", visible: isAdmin },
   ].filter((item) => item.visible)
 
+  const isHome = activeTab === "home" && !user
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-sm">
+    <header
+      className={cn(
+        "fixed top-0 z-50 w-full transition-all duration-300",
+        (isScrolled || !isHome) ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent border-transparent"
+      )}
+    >
       <div className="container mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <button onClick={() => onTabChange("home")} className="flex items-center gap-2 group">
-            <div className="bg-primary text-primary-foreground font-bold text-2xl px-3 py-1.5 rounded-lg group-hover:scale-105 transition-transform shadow-md">
+            <div className={cn(
+              "font-bold text-2xl px-3 py-1.5 rounded-lg group-hover:scale-105 transition-transform shadow-md",
+              (isScrolled || !isHome) ? "bg-primary text-primary-foreground" : "bg-white text-black"
+            )}>
               {"T2"}
             </div>
-            <span className="text-sm font-medium text-muted-foreground hidden sm:inline">{"Titu"}</span>
+            <span className={cn(
+              "text-sm font-medium hidden sm:inline",
+              (isScrolled || !isHome) ? "text-muted-foreground" : "text-white/90"
+            )}>{"Titu"}</span>
           </button>
 
           {/* Desktop Navigation */}
@@ -49,12 +72,16 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
             {navItems.map((item) => (
               <Button
                 key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
+                variant="ghost"
                 onClick={() => {
                   onTabChange(item.id)
                   setMobileMenuOpen(false)
                 }}
-                className="text-sm font-medium"
+                className={cn(
+                  "text-sm font-medium hover:text-primary hover:bg-primary/10",
+                  activeTab === item.id && ((isScrolled || !isHome) ? "bg-primary/10 text-primary" : "bg-white/20 text-white"),
+                  !(isScrolled || !isHome) && activeTab !== item.id && "text-white hover:text-white hover:bg-white/10"
+                )}
               >
                 {item.label}
               </Button>
@@ -96,10 +123,19 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => router.push("/auth/login")}>
+                <Button
+                  variant={isHome && !isScrolled ? "ghost" : "ghost"}
+                  className={cn(isHome && !isScrolled ? "text-white hover:text-white hover:bg-white/10" : "")}
+                  size="sm"
+                  onClick={() => router.push("/auth/login")}
+                >
                   {"Login"}
                 </Button>
-                <Button size="sm" onClick={() => router.push("/auth/sign-up")}>
+                <Button
+                  size="sm"
+                  className={cn(isHome && !isScrolled ? "bg-white text-black hover:bg-white/90" : "")}
+                  onClick={() => router.push("/auth/sign-up")}
+                >
                   {"Sign Up"}
                 </Button>
               </>
@@ -108,7 +144,7 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className={cn("md:hidden", isHome && !isScrolled ? "text-white" : "")}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

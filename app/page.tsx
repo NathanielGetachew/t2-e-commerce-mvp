@@ -288,88 +288,108 @@ export default function HomePage() {
           {!user ? (
             // Guest View
             <>
-              <section className="relative py-32 px-4 flex flex-col items-center justify-center text-center overflow-hidden">
-                {/* Background decoration */}
-                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
+              <section className="relative h-[90vh] flex flex-col items-center justify-center text-center overflow-hidden">
+                {/* Background Image with Overlay */}
+                <div className="absolute inset-0 -z-10">
+                  <img
+                    src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop"
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/60" />
+                </div>
 
-                <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-1000">
-                  <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                <div className="container px-4 relative z-10 space-y-8 animate-in fade-in zoom-in duration-1000">
+                  <h1 className="text-5xl md:text-8xl font-black tracking-tight text-white drop-shadow-2xl">
                     Global Trade, <br />
-                    <span className="text-primary">Simplified.</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-400">Simplified.</span>
                   </h1>
-                  <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                    Your trusted partner for seamless importing from China to Ethiopia.
-                    We handle sourcing, logistics, and delivery so you can focus on growth.
+                  <p className="text-xl md:text-2xl text-gray-200 leading-relaxed max-w-3xl mx-auto font-light drop-shadow-md">
+                    Your trusted partner for seamless sourcing and logistics from China to Ethiopia.
+                    <br className="hidden md:block" />
+                    We handle the complexity, so you can focus on growth.
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
                     <a
                       href="/auth/sign-up"
-                      className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="inline-flex h-14 items-center justify-center rounded-full bg-primary px-10 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:bg-primary/90"
                     >
                       Get Started
                     </a>
                     <a
                       href="/auth/login"
-                      className="inline-flex h-12 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="inline-flex h-14 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-sm px-10 text-lg font-bold text-white shadow-sm transition-all hover:bg-white/20 hover:scale-105"
                     >
                       Member Login
                     </a>
                   </div>
 
-                  <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-sm text-muted-foreground">
-                    <div>
-                      <div className="font-bold text-2xl text-foreground mb-1">5K+</div>
-                      <div>Successful Orders</div>
+                  <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white/80">
+                    <div className="backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
+                      <div className="font-bold text-3xl text-white mb-1">5K+</div>
+                      <div className="text-sm font-medium">Successful Orders</div>
                     </div>
-                    <div>
-                      <div className="font-bold text-2xl text-foreground mb-1">98%</div>
-                      <div>On-Time Delivery</div>
+                    <div className="backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
+                      <div className="font-bold text-3xl text-white mb-1">98%</div>
+                      <div className="text-sm font-medium">On-Time Delivery</div>
                     </div>
-                    <div>
-                      <div className="font-bold text-2xl text-foreground mb-1">24/7</div>
-                      <div>Customer Support</div>
+                    <div className="backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
+                      <div className="font-bold text-3xl text-white mb-1">24/7</div>
+                      <div className="text-sm font-medium">Customer Support</div>
                     </div>
-                    <div>
-                      <div className="font-bold text-2xl text-foreground mb-1">100%</div>
-                      <div>Secure Payment</div>
+                    <div className="backdrop-blur-sm bg-white/5 rounded-2xl p-4 border border-white/10">
+                      <div className="font-bold text-3xl text-white mb-1">100%</div>
+                      <div className="text-sm font-medium">Secure Payment</div>
                     </div>
                   </div>
                 </div>
+
+                {/* Scroll Indicator */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="m19 12-7 7-7-7" /></svg>
+                </div>
               </section>
 
-              <section className="py-24 bg-muted/30">
+              <section className="py-24 bg-gradient-to-b from-background to-muted/30">
                 <div className="container mx-auto max-w-7xl px-4">
-                  <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold tracking-tight mb-4">Why Choose T2?</h2>
-                    <p className="text-muted-foreground max-w-2xl mx-auto">
+                  <div className="text-center mb-16 space-y-4">
+                    <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">Why T2?</div>
+                    <h2 className="text-4xl font-bold tracking-tight">The Future of Import Logistics</h2>
+                    <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                       Experience the difference of a professional logistics partner committed to your success.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="bg-card p-8 rounded-xl border shadow-sm">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z" /><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" /><path d="M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2" /><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2" /></svg>
+                    {[
+                      {
+                        title: "Live Tracking",
+                        desc: "Monitor your shipments in real-time from our warehouse in China to your doorstep in Addis.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z" /><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" /><path d="M21 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2" /><path d="M21 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2" /></svg>
+                      },
+                      {
+                        title: "Fast Delivery",
+                        desc: "Optimized logistics routes ensure your goods arrive faster and safer than ever before.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                      },
+                      {
+                        title: "Best Prices",
+                        desc: "Direct access to manufacturers means you save more on every order without compromising quality.",
+                        icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                      }
+                    ].map((feature, i) => (
+                      <div key={i} className="group relative bg-card p-8 rounded-2xl border hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 text-foreground">
+                          {feature.icon}
+                        </div>
+                        <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          {feature.icon}
+                        </div>
+                        <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                        <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
                       </div>
-                      <h3 className="text-xl font-semibold mb-3">Live Tracking</h3>
-                      <p className="text-muted-foreground">Monitor your shipments in real-time from our warehouse in China to your doorstep in Addis.</p>
-                    </div>
-                    <div className="bg-card p-8 rounded-xl border shadow-sm">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-3">Fast Delivery</h3>
-                      <p className="text-muted-foreground">Optimized logistics routes ensure your goods arrive faster and safer than ever before.</p>
-                    </div>
-                    <div className="bg-card p-8 rounded-xl border shadow-sm">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-3">Best Prices</h3>
-                      <p className="text-muted-foreground">Direct access to manufacturers means you save more on every order without compromising quality.</p>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </section>
@@ -510,100 +530,68 @@ export default function HomePage() {
           )}
         </main>
 
-        <footer className="bg-card border-t mt-20">
-          <div className="container mx-auto max-w-7xl px-4 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              <div>
-                <div className="bg-primary text-primary-foreground font-bold text-2xl px-3 py-1 rounded-md inline-block mb-4">
+        <footer className="bg-zinc-950 text-white border-t border-white/10 mt-20">
+          <div className="container mx-auto max-w-7xl px-4 py-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+              <div className="space-y-6">
+                <div className="bg-primary text-black font-extrabold text-2xl px-4 py-1.5 rounded-lg inline-block">
                   {"T2"}
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {"Your trusted partner for importing quality products from China to Ethiopia."}
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  {"Titu (T2) is your premier gateway for importing quality goods from China to Ethiopia. Bridging markets with trust and efficiency since 2020."}
                 </p>
-                <div className="flex gap-4 mt-6">
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Facebook className="h-5 w-5" />
-                    <span className="sr-only">Facebook</span>
-                  </a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Twitter className="h-5 w-5" />
-                    <span className="sr-only">Twitter</span>
-                  </a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Instagram className="h-5 w-5" />
-                    <span className="sr-only">Instagram</span>
-                  </a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    <Linkedin className="h-5 w-5" />
-                    <span className="sr-only">LinkedIn</span>
-                  </a>
-                  <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    <TikTok className="h-5 w-5" />
-                    <span className="sr-only">TikTok</span>
-                  </a>
+                <div className="flex gap-4">
+                  {[Facebook, Twitter, Instagram, Linkedin, TikTok].map((Icon, i) => (
+                    <a key={i} href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:bg-primary hover:text-black transition-all">
+                      <Icon className="h-5 w-5" />
+                    </a>
+                  ))}
                 </div>
               </div>
+
               <div>
-                <h3 className="font-semibold mb-4">{"Quick Links"}</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <button onClick={() => setActiveTab("home")} className="hover:text-primary transition-colors">
-                      {"Home"}
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => setActiveTab("shop")} className="hover:text-primary transition-colors">
-                      {"Shop"}
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => setActiveTab("track")} className="hover:text-primary transition-colors">
-                      {"Track Order"}
-                    </button>
-                  </li>
+                <h3 className="font-bold text-lg mb-6">{"Company"}</h3>
+                <ul className="space-y-4 text-sm text-zinc-400">
+                  {['About Us', 'Careers', 'Blog', 'Press'].map(item => (
+                    <li key={item}><a href="#" className="hover:text-primary transition-colors">{item}</a></li>
+                  ))}
                 </ul>
               </div>
+
               <div>
-                <h3 className="font-semibold mb-4">{"Categories"}</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <a href="#" className="hover:text-primary transition-colors">
-                      {"Machinery"}
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:text-primary transition-colors">
-                      {"Electronics"}
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:text-primary transition-colors">
-                      {"Kitchen Equipment"}
-                    </a>
-                  </li>
+                <h3 className="font-bold text-lg mb-6">{"Services"}</h3>
+                <ul className="space-y-4 text-sm text-zinc-400">
+                  {['Product Sourcing', 'Logistics & Shipping', 'Customs Clearance', 'Warehousing'].map(item => (
+                    <li key={item}><a href="#" className="hover:text-primary transition-colors">{item}</a></li>
+                  ))}
                 </ul>
               </div>
+
               <div>
-                <h3 className="font-semibold mb-4">{"Contact"}</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>{"Email: info@t2.et"}</li>
-                  <li>{"Phone: +251 911 234 567"}</li>
-                  <li>{"Addis Ababa, Ethiopia"}</li>
+                <h3 className="font-bold text-lg mb-6">{"Contact"}</h3>
+                <ul className="space-y-4 text-sm text-zinc-400">
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-semibold">Email:</span>
+                    <a href="mailto:info@t2.et" className="hover:text-white transition-colors">info@t2.et</a>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-semibold">Phone:</span>
+                    <span>+251 911 234 567</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-semibold">Addr:</span>
+                    <span>Bole Road, Addis Ababa, Ethiopia</span>
+                  </li>
                 </ul>
               </div>
             </div>
-            <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-muted-foreground">{"© 2025 T2 (Titu). All rights reserved."}</p>
-              <div className="flex gap-6 text-sm text-muted-foreground">
-                <a href="#" className="hover:text-primary transition-colors">
-                  {"Privacy Policy"}
-                </a>
-                <a href="#" className="hover:text-primary transition-colors">
-                  {"Terms of Service"}
-                </a>
-                <a href="#" className="hover:text-primary transition-colors">
-                  {"Contact Us"}
-                </a>
+
+            <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-500">
+              <p>{"© 2025 T2 (Titu). All rights reserved."}</p>
+              <div className="flex gap-8">
+                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-white transition-colors">Sitemap</a>
               </div>
             </div>
           </div>
