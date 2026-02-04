@@ -22,6 +22,10 @@ export interface Product {
     reviewCount?: number
     inStock?: boolean
     tags?: string[]
+    bulkPricing?: {
+        minQty: number
+        price: number
+    }[]
 }
 
 export interface ProductProposal {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react"
-import { useCart } from "@/app/page"
+import { useCart } from "@/components/providers/cart-provider"
 import { useState } from "react"
 
 interface ShoppingCartProps {

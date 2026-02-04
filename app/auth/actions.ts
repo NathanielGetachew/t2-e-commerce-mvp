@@ -18,6 +18,11 @@ export interface User {
     fullName: string
     phone: string
     role: UserRole
+    // Ambassador fields
+    isAmbassador?: boolean
+    referralCode?: string
+    commissionRate?: number // e.g., 5 for 5%
+    totalEarnings?: number
 }
 
 const DEFAULT_SUPER_USER: User = {
@@ -84,6 +89,7 @@ export async function signUp(data: {
             email: newUser.email,
             full_name: newUser.fullName,
             role: newUser.role,
+            isAmbassador: false,
             simulated: true
         }), {
             path: '/',
@@ -121,6 +127,7 @@ export async function signIn(data: {
             email: user.email,
             full_name: user.fullName,
             role: user.role,
+            isAmbassador: user.isAmbassador || false,
             simulated: true
         }), {
             path: '/',
@@ -198,4 +205,51 @@ export async function signOut() {
     const cookieStore = await cookies()
     cookieStore.delete(MOCK_SESSION_COOKIE)
     return { success: true }
+}
+
+export async function upgradeToAmbassador(userId: string) {
+    const users = await getDB()
+    const userIndex = users.findIndex(u => u.id === userId)
+
+    if (userIndex === -1) {
+        return { error: "User not found" }
+    }
+
+    const user = users[userIndex]
+
+    if (user.isAmbassador) {
+        return { error: "User is already an ambassador" }
+    }
+
+    // Generate unique referral code (simplified for mock)
+    const code = `AMB-${user.email.split('@')[0].toUpperCase().substring(0, 5)}-${Math.floor(Math.random() * 1000)}`
+
+    user.isAmbassador = true
+    user.referralCode = code
+    user.commissionRate = 5 // Default 5% commission
+    user.totalEarnings = 0
+
+    users[userIndex] = user
+    await writeDB(users)
+
+    // Update session if it's the current user
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
+    if (sessionCookie) {
+        const session = JSON.parse(sessionCookie.value)
+        if (session.id === userId) {
+            cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
+                ...session,
+                isAmbassador: true,
+                referralCode: code
+            }), {
+                path: '/',
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 60 * 60 * 24 * 7
+            })
+        }
+    }
+
+    return { success: true, code }
 }

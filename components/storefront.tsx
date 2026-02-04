@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card"
 import { ShoppingCart, Heart, Search, Star } from "lucide-react"
-import type { Product } from "@/app/page"
-import { useCart } from "@/app/page"
+import type { Product } from "@/app/actions/product-actions"
+import { useCart } from "@/components/providers/cart-provider"
 import { cn } from "@/lib/utils"
 
 interface StorefrontProps {

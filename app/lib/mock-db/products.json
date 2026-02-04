@@ -12,6 +12,16 @@
       "Motor Power": "550W",
       "Warranty": "2 Years"
     },
+    "bulkPricing": [
+      {
+        "minQty": 10,
+        "price": 42000
+      },
+      {
+        "minQty": 50,
+        "price": 40000
+      }
+    ],
     "rating": 4.5,
     "reviewCount": 23,
     "inStock": true,
@@ -34,6 +44,16 @@
       "Storage": "512GB SSD",
       "Display": "14-inch FHD"
     },
+    "bulkPricing": [
+      {
+        "minQty": 5,
+        "price": 82000
+      },
+      {
+        "minQty": 20,
+        "price": 78000
+      }
+    ],
     "rating": 4.8,
     "reviewCount": 45,
     "inStock": true,
@@ -55,6 +75,16 @@
       "Output": "AC 220V",
       "Efficiency": "95%"
     },
+    "bulkPricing": [
+      {
+        "minQty": 10,
+        "price": 14000
+      },
+      {
+        "minQty": 50,
+        "price": 12500
+      }
+    ],
     "rating": 4.3,
     "reviewCount": 18,
     "inStock": true,
@@ -178,5 +208,22 @@
     "reviewCount": 0,
     "inStock": true,
     "tags": []
+  },
+  {
+    "id": "8650dae0-830d-4cf9-ac89-c3e8b34a9b3a",
+    "name": "Electric Car",
+    "price": 15000000,
+    "category": "Electric device",
+    "image": "/product-images/b828daba-3c96-4f3a-b4e9-727a5e207c9a-coffeneon.jpg",
+    "description": "Electric car that is very comfy and affordable",
+    "specifications": {},
+    "rating": 0,
+    "reviewCount": 0,
+    "inStock": true,
+    "tags": [
+      "Electric car",
+      "Tesla",
+      "BYD"
+    ]
   }
 ]

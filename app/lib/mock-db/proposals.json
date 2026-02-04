@@ -33,5 +33,25 @@
     "targetProductId": "25baefde-880d-4fd5-bddf-4a9921ca28ef",
     "proposedBy": "superuser@t2.com",
     "proposedAt": "2025-12-31T08:31:44.892Z"
+  },
+  {
+    "id": "3f53707f-c171-4935-8112-ed9131f0a120",
+    "type": "add",
+    "status": "approved",
+    "productData": {
+      "name": "Electric Car",
+      "category": "Electric device",
+      "price": 15000000,
+      "image": "/product-images/b828daba-3c96-4f3a-b4e9-727a5e207c9a-coffeneon.jpg",
+      "tags": [
+        "Electric car",
+        "Tesla",
+        "BYD"
+      ],
+      "description": "Electric car that is very comfy and affordable",
+      "inStock": true
+    },
+    "proposedBy": "admin@t2.com",
+    "proposedAt": "2026-01-03T19:28:53.589Z"
   }
 ]

@@ -10,6 +10,7 @@ import { AdminHeader } from "./admin/admin-header"
 import { AdminOverview } from "./admin/admin-overview"
 import { AdminInventory } from "./admin/admin-inventory"
 import { AdminCoupons } from "./admin/admin-coupons"
+import { AdminSupplyChain } from "./admin/admin-supply-chain"
 
 interface AdminDashboardProps {
   orders: Order[]
@@ -18,7 +19,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardProps) {
-  const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons'>('overview')
+  const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons' | 'supply_chain'>('overview')
 
   const handleLogout = () => {
     // Determine logout path based on env/cookies/etc, but for now we'll just reload or redirect
@@ -45,6 +46,9 @@ export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardP
           )}
           {activeView === 'coupons' && (
             <AdminCoupons user={user} />
+          )}
+          {activeView === 'supply_chain' && (
+            <AdminSupplyChain />
           )}
         </main>
       </div>

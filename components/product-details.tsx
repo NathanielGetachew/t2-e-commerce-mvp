@@ -5,19 +5,26 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { X, Plus, Minus, Star, Heart, ShoppingCart, Package, Shield, Truck } from "lucide-react"
-import type { Product } from "@/app/page"
-import { useCart } from "@/app/page"
+import type { Product } from "@/app/actions/product-actions"
+import { useCart } from "@/components/providers/cart-provider"
 import { cn } from "@/lib/utils"
+import { PriceDisplay } from "@/components/product/price-display"
+
+import { useRouter } from "next/navigation"
+import type { User } from "@/app/auth/actions"
 
 interface ProductDetailsProps {
   product: Product
   onClose: () => void
+  user: User | null
+  onBuyNow: () => void
 }
 
-export function ProductDetails({ product, onClose }: ProductDetailsProps) {
+export function ProductDetails({ product, onClose, user, onBuyNow }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1)
   const { addToCart, wishlist, toggleWishlist } = useCart()
   const isWishlisted = wishlist.includes(product.id)
+  const router = useRouter()
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -26,6 +33,15 @@ export function ProductDetails({ product, onClose }: ProductDetailsProps) {
   const handleAddToCart = () => {
     addToCart(product, quantity)
     onClose()
+  }
+
+  const handleBuyNow = () => {
+    if (!user) {
+      router.push("/auth/login")
+      return
+    }
+    addToCart(product, quantity)
+    onBuyNow()
   }
 
   return (
@@ -96,14 +112,12 @@ export function ProductDetails({ product, onClose }: ProductDetailsProps) {
                 )}
 
                 {/* Price */}
-                <div className="flex items-baseline gap-3 mb-6">
-                  <span className="text-4xl font-bold text-primary">{product.price.toLocaleString()}</span>
-                  <span className="text-lg text-muted-foreground">{"ETB"}</span>
-                  {product.originalPrice && (
-                    <span className="text-xl text-muted-foreground line-through">
-                      {product.originalPrice.toLocaleString()}
-                    </span>
-                  )}
+                <div className="mb-6">
+                  <PriceDisplay
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    bulkPricing={product.bulkPricing}
+                  />
                 </div>
 
                 {/* Description */}
@@ -167,6 +181,14 @@ export function ProductDetails({ product, onClose }: ProductDetailsProps) {
                 <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={product.inStock === false}>
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   {"Add to Cart"}
+                </Button>
+                <Button
+                  size="lg"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={handleBuyNow}
+                  disabled={product.inStock === false}
+                >
+                  {"Buy Now"}
                 </Button>
                 <Button
                   size="lg"

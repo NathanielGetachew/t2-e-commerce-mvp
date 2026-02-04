@@ -1,0 +1,51 @@
+[
+    {
+        "id": "SH-001",
+        "trackingNumber": "TRK-99887766",
+        "supplier": "Shenzhen Electronics Co.",
+        "status": "In Transit",
+        "origin": "Shenzhen, China",
+        "destination": "Addis Ababa, Ethiopia",
+        "expectedArrival": "2024-03-15T00:00:00.000Z",
+        "items": [
+            {
+                "productName": "Solar Inverter 5KW",
+                "quantity": 50
+            },
+            {
+                "productName": "LED Display Screen 4K",
+                "quantity": 20
+            }
+        ]
+    },
+    {
+        "id": "SH-002",
+        "trackingNumber": "TRK-11223344",
+        "supplier": "Guangzhou Textile Machinery",
+        "status": "In Production",
+        "origin": "Guangzhou, China",
+        "destination": "Addis Ababa, Ethiopia",
+        "expectedArrival": "2024-04-01T00:00:00.000Z",
+        "items": [
+            {
+                "productName": "Industrial Sewing Machine",
+                "quantity": 100
+            }
+        ]
+    },
+    {
+        "id": "SH-003",
+        "trackingNumber": "TRK-55443322",
+        "supplier": "Shanghai Heavy Industry",
+        "status": "Customs Clearance",
+        "origin": "Shanghai, China",
+        "destination": "Addis Ababa, Ethiopia",
+        "expectedArrival": "2024-02-28T00:00:00.000Z",
+        "items": [
+            {
+                "productName": "Hydraulic Press Machine",
+                "quantity": 5
+            }
+        ]
+    }
+]

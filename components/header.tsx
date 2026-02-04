@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Menu, X, ShoppingCart, LogOut, User } from "lucide-react"
+import { Menu, X, ShoppingCart, LogOut, User, Users } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 // import type { User as SupabaseUser } from "@supabase/supabase-js" // Removing
@@ -115,6 +115,16 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
                       {"Admin"}
                     </Badge>
                   )}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/dashboard/ambassador")}
+                  className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
+                  title="Ambassador Program"
+                >
+                  <Users className="h-4 w-4" />
                 </Button>
 
                 <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign Out">

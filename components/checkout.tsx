@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { X, CreditCard, CheckCircle } from "lucide-react"
-import { useCart } from "@/app/page"
+import { useCart } from "@/components/providers/cart-provider"
 
 interface CheckoutProps {
   onClose: () => void

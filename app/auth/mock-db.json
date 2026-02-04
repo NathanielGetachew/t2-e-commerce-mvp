@@ -13,7 +13,11 @@
     "password": "password",
     "fullName": "Default Admin",
     "phone": "0911000000",
-    "role": "admin"
+    "role": "admin",
+    "isAmbassador": true,
+    "referralCode": "AMB-ADMIN-730",
+    "commissionRate": 5,
+    "totalEarnings": 0
   },
   {
     "id": "default-customer-id",
@@ -21,6 +25,10 @@
     "password": "password",
     "fullName": "Default Customer",
     "phone": "0912000000",
-    "role": "customer"
+    "role": "customer",
+    "isAmbassador": true,
+    "referralCode": "AMB-CUSTO-597",
+    "commissionRate": 5,
+    "totalEarnings": 0
   }
 ]
