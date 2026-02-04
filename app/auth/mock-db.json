@@ -17,7 +17,13 @@
     "isAmbassador": true,
     "referralCode": "AMB-ADMIN-730",
     "commissionRate": 5,
-    "totalEarnings": 0
+    "totalEarnings": 0,
+    "ambassadorStatus": "approved",
+    "metrics": {
+      "clicks": 0,
+      "conversions": 0,
+      "revenueGenerated": 0
+    }
   },
   {
     "id": "default-customer-id",
@@ -29,6 +35,22 @@
     "isAmbassador": true,
     "referralCode": "AMB-CUSTO-597",
     "commissionRate": 5,
-    "totalEarnings": 0
+    "totalEarnings": 0,
+    "ambassadorStatus": "pending",
+    "metrics": {
+      "clicks": 0,
+      "conversions": 0,
+      "revenueGenerated": 0
+    },
+    "applicationData": {
+      "socialLinks": [
+        {
+          "platform": "Instagram",
+          "url": "instagra.com/natty"
+        }
+      ],
+      "whyJoin": "to promote the new business blossoming and to take part in it",
+      "marketingStrategy": "i\"ll use my social media acounts to reach all available customers"
+    }
   }
 ]

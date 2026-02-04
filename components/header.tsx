@@ -125,6 +125,7 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
                   title="Ambassador Program"
                 >
                   <Users className="h-4 w-4" />
+                  <span>Ambassador</span>
                 </Button>
 
                 <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign Out">
@@ -180,10 +181,23 @@ export function Header({ activeTab, onTabChange, cartCount = 0, onCartClick, use
                 </Button>
               ))}
               {user && (
-                <Button variant="ghost" onClick={handleSignOut} className="justify-start text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {"Sign Out"}
-                </Button>
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      router.push("/dashboard/ambassador")
+                      setMobileMenuOpen(false)
+                    }}
+                    className="justify-start"
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    Ambassador Program
+                  </Button>
+                  <Button variant="ghost" onClick={handleSignOut} className="justify-start text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {"Sign Out"}
+                  </Button>
+                </>
               )}
             </div>
           </nav>

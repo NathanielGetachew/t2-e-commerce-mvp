@@ -1,12 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, Tag, LogOut, Settings, Truck } from "lucide-react"
+import { LayoutDashboard, Package, Tag, LogOut, Settings, Truck, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
-    activeView: 'overview' | 'inventory' | 'coupons' | 'supply_chain'
-    setActiveView: (view: 'overview' | 'inventory' | 'coupons' | 'supply_chain') => void
+    activeView: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'
+    setActiveView: (view: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors') => void
     onLogout: () => void
 }
 
@@ -52,6 +52,14 @@ export function AdminSidebar({ activeView, setActiveView, onLogout }: AdminSideb
                 >
                     <Truck className="h-4 w-4" />
                     Supply Chain
+                </Button>
+                <Button
+                    variant={activeView === 'ambassadors' ? 'secondary' : 'ghost'}
+                    className={cn("justify-start gap-2", activeView === 'ambassadors' && "font-semibold")}
+                    onClick={() => setActiveView('ambassadors')}
+                >
+                    <Users className="h-4 w-4" />
+                    Ambassadors
                 </Button>
             </nav>
 

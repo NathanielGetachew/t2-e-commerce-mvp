@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { Order, OrderStatus } from "@/app/page"
+import type { Order, OrderStatus } from "@/app/home-client"
 import type { User as MockUser } from "@/app/auth/actions"
 
 // Import modular components
@@ -11,6 +11,7 @@ import { AdminOverview } from "./admin/admin-overview"
 import { AdminInventory } from "./admin/admin-inventory"
 import { AdminCoupons } from "./admin/admin-coupons"
 import { AdminSupplyChain } from "./admin/admin-supply-chain"
+import { AdminAmbassadors } from "./admin/admin-ambassadors"
 
 interface AdminDashboardProps {
   orders: Order[]
@@ -19,7 +20,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardProps) {
-  const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons' | 'supply_chain'>('overview')
+  const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'>('overview')
 
   const handleLogout = () => {
     // Determine logout path based on env/cookies/etc, but for now we'll just reload or redirect
@@ -49,6 +50,9 @@ export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardP
           )}
           {activeView === 'supply_chain' && (
             <AdminSupplyChain />
+          )}
+          {activeView === 'ambassadors' && (
+            <AdminAmbassadors />
           )}
         </main>
       </div>

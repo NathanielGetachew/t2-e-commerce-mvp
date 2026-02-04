@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ShipmentStatus {
+  IN_PRODUCTION
+  SHIPPED_FROM_CHINA
+  IN_CUSTOMS
+  RECEIVED_AT_WAREHOUSE
+}
+
+enum AmbassadorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String?
+  name      String?
+  role      UserRole @default(CUSTOMER)
+
+  // Ambassador is a sub-role of Customer; Super/Admin can also be ambassadors but typically false.
+  isAmbassador     Boolean  @default(false)
+  ambassadorCode   String?  @unique
+  commissionRateBp Int      @default(500) // 5.00%
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders                 Order[]
+  ambassadorApplications AmbassadorApplication[]
+
+  referralsAsAmbassador AmbassadorReferral[] @relation("AmbassadorReferrals")
+  referralsAsCustomer   AmbassadorReferral[] @relation("CustomerReferrals")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  images      String[]
+
+  singlePriceCents Int
+  currency         String @default("USD")
+
+  stock Int @default(0)
+
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  bulkTiers BulkTier[]
+
+  @@index([isActive])
+  @@index([categoryId])
+}
+
+model BulkTier {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  minQty         Int
+  maxQty         Int? // null means no upper bound
+  unitPriceCents Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, minQty])
+  @@index([productId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  status      OrderStatus @default(PENDING)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  currency     String @default("USD")
+  subtotalCents Int
+  discountCents Int @default(0)
+  totalCents    Int
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items    OrderItem[]
+  referral AmbassadorReferral?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  quantity Int
+  // Snapshot pricing at time of purchase (supports tiered pricing and mixed carts)
+  appliedUnitPriceCents Int
+  lineTotalCents        Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model AmbassadorApplication {
+  id        String                      @id @default(cuid())
+  userId    String
+  user      User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    AmbassadorApplicationStatus @default(PENDING)
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AmbassadorReferral {
+  id String @id @default(cuid())
+
+  // Who referred the customer
+  ambassadorId String
+  ambassador   User @relation("AmbassadorReferrals", fields: [ambassadorId], references: [id], onDelete: Restrict)
+
+  // The purchasing customer (can also be ambassador; still tracked)
+  customerId String
+  customer   User @relation("CustomerReferrals", fields: [customerId], references: [id], onDelete: Restrict)
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Tracking
+  referralCodeUsed String?
+  referralSource   String? // e.g. "link", "coupon"
+
+  // Snapshot commission at time of order
+  commissionRateBp Int
+  commissionCents  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ambassadorId])
+  @@index([customerId])
+}
+
+model Shipment {
+  id          String         @id @default(cuid())
+  containerId String         @unique
+  status      ShipmentStatus @default(IN_PRODUCTION)
+  notes       String?
+
+  // Optional admin linking
+  updatedByUserId String?
+  updatedByUser   User? @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
+
+  // Important dates
+  productionStartedAt DateTime?
+  shippedFromChinaAt  DateTime?
+  inCustomsAt         DateTime?
+  receivedAtWarehouseAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  history ShipmentStatusHistory[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ShipmentStatusHistory {
+  id         String         @id @default(cuid())
+  shipmentId String
+  shipment   Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  status ShipmentStatus
+  note   String?
+
+  changedAt DateTime @default(now())
+  changedByUserId String?
+  changedByUser   User? @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([shipmentId])
+  @@index([changedAt])
+}
+
+

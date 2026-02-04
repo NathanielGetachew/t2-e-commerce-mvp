@@ -10,13 +10,15 @@ import { Badge } from "@/components/ui/badge"
 import { X, CreditCard, CheckCircle } from "lucide-react"
 import { useCart } from "@/components/providers/cart-provider"
 
+import { recordCommission } from "@/app/actions/affiliate-actions"
+
 interface CheckoutProps {
   onClose: () => void
   onSuccess: () => void
 }
 
 export function Checkout({ onClose, onSuccess }: CheckoutProps) {
-  const { cart, totalPrice } = useCart()
+  const { cart, totalPrice, couponCode } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
 
@@ -57,6 +59,13 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
 
       // Simulate successful payment
       setPaymentSuccess(true)
+
+      // Record commission if referral code is present
+      if (couponCode) {
+        // In this simplified model, couponCode IS the referral code
+        await recordCommission(couponCode, totalPrice)
+      }
+
       setTimeout(() => {
         setIsProcessing(false)
         onSuccess()

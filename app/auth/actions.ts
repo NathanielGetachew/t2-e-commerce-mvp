@@ -18,11 +18,23 @@ export interface User {
     fullName: string
     phone: string
     role: UserRole
-    // Ambassador fields
-    isAmbassador?: boolean
+    // Ambassador-related fields
+    isAmbassador: boolean
     referralCode?: string
-    commissionRate?: number // e.g., 5 for 5%
+    commissionRate?: number // Percentage (e.g., 5 for 5%)
     totalEarnings?: number
+    ambassadorStatus?: "none" | "pending" | "approved" | "rejected"
+    applicationData?: {
+        socialLinks: { platform: string; url: string }[]
+        whyJoin: string
+        marketingStrategy: string
+    }
+    customCode?: string
+    metrics?: {
+        clicks: number
+        conversions: number
+        revenueGenerated: number
+    }
 }
 
 const DEFAULT_SUPER_USER: User = {
@@ -30,8 +42,9 @@ const DEFAULT_SUPER_USER: User = {
     email: "superuser@t2.com",
     password: "password",
     fullName: "Super Administrator",
-    phone: "0000000000",
-    role: "super-admin"
+    phone: "0911000000",
+    role: "super-admin",
+    isAmbassador: false
 }
 
 // Helper to read/write DB
@@ -75,8 +88,9 @@ export async function signUp(data: {
             email: data.email,
             password: data.password,
             fullName: data.fullName,
-            phone: data.phone,
-            role: "customer"
+            phone: "0000000000",
+            role: "customer",
+            isAmbassador: false
         }
 
         users.push(newUser)
@@ -175,7 +189,8 @@ export async function createAdmin(data: {
             password: data.password,
             fullName: data.fullName,
             phone: data.phone,
-            role: "admin"
+            role: "admin",
+            isAmbassador: false
         }
 
         users.push(newAdmin)
