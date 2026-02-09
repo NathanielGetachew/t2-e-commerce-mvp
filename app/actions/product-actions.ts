@@ -64,7 +64,7 @@ export async function proposeProduct(action: "add" | "remove" | "update", data: 
     targetProductId?: string
 }) {
     const user = await getUser()
-    if (!user || (user.role !== "admin" && user.role !== "super-admin")) {
+    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
         return { error: "Unauthorized" }
     }
 
@@ -86,7 +86,7 @@ export async function proposeProduct(action: "add" | "remove" | "update", data: 
 
 export async function handleProposal(proposalId: string, action: "approve" | "reject") {
     const user = await getUser()
-    if (!user || user.role !== "super-admin") {
+    if (!user || user.role !== "SUPER_ADMIN") {
         return { error: "Only Super Admin can approve/reject proposals" }
     }
 

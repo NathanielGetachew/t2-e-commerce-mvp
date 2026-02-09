@@ -1,10 +1,12 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ShieldCheck, Clock, ShoppingCart, Plane, Package } from "lucide-react"
 import { useState, useEffect } from "react"
 import { TypewriterEffect } from "@/components/ui/typewriter-effect"
 
 interface HeroProps {
-  onStartShopping: () => void
+  onStartShopping?: () => void
 }
 
 function FlippingBadge() {

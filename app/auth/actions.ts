@@ -1,270 +1,211 @@
 "use server"
 
-import { cookies } from "next/headers"
-import fs from "fs/promises"
+import { currentUser } from "@clerk/nextjs/server"
+import { UserRole } from "@prisma/client"
+import { prisma, isDatabaseAvailable } from "@/lib/prisma"
+
+// Helper for reading mock DB - adding this to support the custom login/signup pages
+// that were referencing these missing actions.
+import { promises as fs } from "fs"
 import path from "path"
-import { v4 as uuidv4 } from "uuid"
+import { cookies } from "next/headers"
 
-// CONSTANTS
-const MOCK_SESSION_COOKIE = "mock-auth-session"
-const DB_PATH = path.join(process.cwd(), "app/auth/mock-db.json")
+const MOCK_DB_PATH = path.join(process.cwd(), "app/auth/mock-db.json")
 
-export type UserRole = "customer" | "admin" | "super-admin"
+async function getMockUsers() {
+    try {
+        const data = await fs.readFile(MOCK_DB_PATH, "utf-8")
+        return JSON.parse(data)
+    } catch (e) {
+        return []
+    }
+}
 
+// Define a User type that matches what the UI and Mock system expects
 export interface User {
     id: string
     email: string
-    password: string // Storing plain text for MOCK purposes only
     fullName: string
-    phone: string
     role: UserRole
-    // Ambassador-related fields
     isAmbassador: boolean
+    // Ambassador / Affiliate fields
     referralCode?: string
-    commissionRate?: number // Percentage (e.g., 5 for 5%)
-    totalEarnings?: number
-    ambassadorStatus?: "none" | "pending" | "approved" | "rejected"
-    applicationData?: {
-        socialLinks: { platform: string; url: string }[]
-        whyJoin: string
-        marketingStrategy: string
-    }
     customCode?: string
+    ambassadorStatus?: "pending" | "approved" | "rejected"
+    commissionRate?: number
+    totalEarnings?: number
     metrics?: {
         clicks: number
         conversions: number
         revenueGenerated: number
     }
-}
-
-const DEFAULT_SUPER_USER: User = {
-    id: "super-admin-id",
-    email: "superuser@t2.com",
-    password: "password",
-    fullName: "Super Administrator",
-    phone: "0911000000",
-    role: "super-admin",
-    isAmbassador: false
-}
-
-// Helper to read/write DB
-async function getDB(): Promise<User[]> {
-    try {
-        await fs.access(DB_PATH)
-        const data = await fs.readFile(DB_PATH, "utf-8")
-        return JSON.parse(data)
-    } catch {
-        // If file doesn't exist, create it with super user
-        const initialData = [DEFAULT_SUPER_USER]
-        await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2))
-        return initialData
+    applicationData?: {
+        socialLinks: { platform: string; url: string }[]
+        whyJoin: string
+        marketingStrategy: string
     }
+    phone?: string
 }
 
-async function writeDB(users: User[]) {
-    await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2))
-}
 
-export async function signUp(data: {
-    email: string
-    password: string
-    fullName: string
-    phone: string
-    // isAdmin is removed from public sign up, defaulting to customer
-}) {
-    console.log("SIMULATED Action: signUp called for", data.email)
-
-    await new Promise(resolve => setTimeout(resolve, 500))
-
+export async function getUser(): Promise<User | null> {
+    let clerkUser = null
     try {
-        const users = await getDB()
-
-        if (users.find(u => u.email === data.email)) {
-            return { error: "User with this email already exists" }
-        }
-
-        const newUser: User = {
-            id: uuidv4(),
-            email: data.email,
-            password: data.password,
-            fullName: data.fullName,
-            phone: "0000000000",
-            role: "customer",
-            isAmbassador: false
-        }
-
-        users.push(newUser)
-        await writeDB(users)
-
-        // Auto login after sign up
-        const cookieStore = await cookies()
-        cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
-            id: newUser.id,
-            email: newUser.email,
-            full_name: newUser.fullName,
-            role: newUser.role,
-            isAmbassador: false,
-            simulated: true
-        }), {
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 7 // 1 week
-        })
-
-        return { success: true }
+        clerkUser = await currentUser()
     } catch (error) {
-        console.error("Simulation error:", error)
-        return { error: "An unexpected error occurred during simulated sign up" }
+        console.warn("Clerk currentUser() failed (likely due to missing/invalid keys). Falling back to mock/guest mode.", error)
     }
-}
 
-export async function signIn(data: {
-    email: string
-    password: string
-}) {
-    console.log("SIMULATED Action: signIn called for", data.email)
+    if (!clerkUser) {
+        // Return null or mock user based on db availability
+        if (!isDatabaseAvailable) {
+            // Check for mock session cookie
+            const cookieStore = await cookies()
+            const mockSession = cookieStore.get("mock-session")
 
-    await new Promise(resolve => setTimeout(resolve, 500))
+            if (mockSession) {
+                try {
+                    const sessionData = JSON.parse(mockSession.value)
+                    return {
+                        id: sessionData.id,
+                        email: sessionData.email,
+                        fullName: sessionData.fullName,
+                        role: sessionData.role as UserRole, // Ensure role matches UserRole type
+                        isAmbassador: !!sessionData.isAmbassador
+                    }
+                } catch (e) {
+                    console.error("Failed to parse mock session", e)
+                }
+            }
 
-    try {
-        const users = await getDB()
-        const user = users.find(u => u.email === data.email && u.password === data.password)
-
-        if (!user) {
-            return { error: "Invalid credentials" }
+            // If no DB and no Clerk, we can't really "autologin" unless we want a default mock user.
+            // But for build safety, return null is safer.
+            // OR, if we want to test "logged in" state, we could return a mock user.
+            // Let's return null to be safe for now, avoiding Header rendering UserNav.
+            return null
         }
-
-        const cookieStore = await cookies()
-        cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
-            id: user.id,
-            email: user.email,
-            full_name: user.fullName,
-            role: user.role,
-            isAmbassador: user.isAmbassador || false,
-            simulated: true
-        }), {
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 7
-        })
-
-        return { success: true, role: user.role }
-    } catch (error) {
-        console.error("Simulation error:", error)
-        return { error: "An unexpected error occurred during simulated login" }
-    }
-}
-
-export async function createAdmin(data: {
-    email: string
-    password: string
-    fullName: string
-    phone: string
-}) {
-    console.log("SIMULATED Action: createAdmin called for", data.email)
-
-    // Authorization check
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
-    if (!sessionCookie) {
-        return { error: "Unauthorized" }
-    }
-    const session = JSON.parse(sessionCookie.value)
-    if (session.role !== "super-admin") {
-        return { error: "Only Super Admin can create admins" }
-    }
-
-    try {
-        const users = await getDB()
-
-        if (users.find(u => u.email === data.email)) {
-            return { error: "User with this email already exists" }
-        }
-
-        const newAdmin: User = {
-            id: uuidv4(),
-            email: data.email,
-            password: data.password,
-            fullName: data.fullName,
-            phone: data.phone,
-            role: "admin",
-            isAmbassador: false
-        }
-
-        users.push(newAdmin)
-        await writeDB(users)
-
-        return { success: true }
-    } catch (error) {
-        console.error("Simulation error:", error)
-        return { error: "Failed to create admin" }
-    }
-}
-
-export async function getUser() {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
-    if (!sessionCookie) {
         return null
     }
-    try {
-        return JSON.parse(sessionCookie.value)
-    } catch {
-        return null
+
+    if (!isDatabaseAvailable) {
+        return {
+            id: "pending",
+            email: clerkUser.emailAddresses[0]?.emailAddress || "",
+            fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
+            role: "CUSTOMER" as UserRole,
+            isAmbassador: false
+        }
+    }
+
+    // Find in DB
+    const dbUser = await prisma.user.findUnique({
+        where: { clerkId: clerkUser.id }
+    })
+
+    if (!dbUser) {
+        // If Clerk has user but DB doesn't (race condition or first login hook failed)
+        // We can return a basic object or try to create sync.
+        // For now, return null or basics.
+        // Ideally the webhook handles creation, but let's be robust.
+        return {
+            id: "pending",
+            email: clerkUser.emailAddresses[0]?.emailAddress || "",
+            fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
+            role: "CUSTOMER" as UserRole,
+            isAmbassador: false
+        }
+    }
+
+    return {
+        id: dbUser.id,
+        email: dbUser.email || "",
+        fullName: dbUser.name || "",
+        role: dbUser.role,
+        isAmbassador: dbUser.isAmbassador
     }
 }
 
 export async function signOut() {
+    // Clerk handles sign out via client component usually (useClerk), 
+    // but for server actions we can't clear cookies easily without Redirect.
+    // This function is mainly for the mock compatibility. 
+    // The Header component should calls `clerk.signOut()` on client.
+
+    // Clear mock session
     const cookieStore = await cookies()
-    cookieStore.delete(MOCK_SESSION_COOKIE)
+    cookieStore.delete("mock-session")
+
     return { success: true }
 }
 
-export async function upgradeToAmbassador(userId: string) {
-    const users = await getDB()
-    const userIndex = users.findIndex(u => u.id === userId)
+export async function signIn(data: any) {
+    const users = await getMockUsers()
+    const user = users.find((u: any) => u.email === data.email && u.password === data.password)
 
-    if (userIndex === -1) {
-        return { error: "User not found" }
+    if (!user) {
+        return { error: "Invalid email or password" }
     }
 
-    const user = users[userIndex]
+    // Note: This only works for the mock UI. 
+    // It doesn't actually sign the user into Clerk.
 
-    if (user.isAmbassador) {
-        return { error: "User is already an ambassador" }
-    }
-
-    // Generate unique referral code (simplified for mock)
-    const code = `AMB-${user.email.split('@')[0].toUpperCase().substring(0, 5)}-${Math.floor(Math.random() * 1000)}`
-
-    user.isAmbassador = true
-    user.referralCode = code
-    user.commissionRate = 5 // Default 5% commission
-    user.totalEarnings = 0
-
-    users[userIndex] = user
-    await writeDB(users)
-
-    // Update session if it's the current user
+    // Set cookie for mock session
     const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(MOCK_SESSION_COOKIE)
-    if (sessionCookie) {
-        const session = JSON.parse(sessionCookie.value)
-        if (session.id === userId) {
-            cookieStore.set(MOCK_SESSION_COOKIE, JSON.stringify({
-                ...session,
-                isAmbassador: true,
-                referralCode: code
-            }), {
-                path: '/',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 60 * 60 * 24 * 7
-            })
+    cookieStore.set("mock-session", JSON.stringify({
+        id: user.id || "mock-user-id",
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role.toUpperCase(),
+        isAmbassador: !!user.isAmbassador
+    }), { secure: false, httpOnly: true, path: '/' }) // secure false for localhost dev
+
+    return {
+        success: true,
+        role: user.role.toLowerCase(),
+        user: {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            role: user.role.toUpperCase() as UserRole,
+            isAmbassador: !!user.isAmbassador
         }
     }
-
-    return { success: true, code }
 }
+
+export async function signUp(data: any) {
+    const users = await getMockUsers()
+
+    if (users.find((u: any) => u.email === data.email)) {
+        return { error: "User already exists" }
+    }
+
+    // In a real app, we would create the user in Clerk and the DB.
+    // For now, we'll just simulate success for the UI.
+    return { success: true }
+}
+
+export async function createAdmin(data: any) {
+    const users = await getMockUsers()
+
+    if (users.find((u: any) => u.email === data.email)) {
+        return { error: "User already exists" }
+    }
+
+    const newUser = {
+        id: `admin-${Date.now()}`,
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        phone: data.phone,
+        role: "admin",
+        isAmbassador: false
+    }
+
+    users.push(newUser)
+    await fs.writeFile(MOCK_DB_PATH, JSON.stringify(users, null, 2))
+
+    return { success: true }
+}
+
+
+

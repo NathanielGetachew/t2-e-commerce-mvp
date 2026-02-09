@@ -69,7 +69,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
             </div>
 
             <div className="flex items-center gap-4">
-                {user?.role === "super-admin" && (
+                {user?.role === "SUPER_ADMIN" && (
                     <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
                         <DialogTrigger asChild>
                             <Button variant="default" size="sm" className="hidden md:flex">
@@ -123,7 +123,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                         <UserIcon className="h-4 w-4" />
                     </div>
                     <div className="hidden md:block">
-                        <div className="text-sm font-medium">{user?.role === 'super-admin' ? 'Super Admin' : user?.fullName || 'Admin'}</div>
+                        <div className="text-sm font-medium">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : user?.fullName || 'Admin'}</div>
                         <div className="text-xs text-muted-foreground capitalize">{user?.role?.replace('-', ' ')}</div>
                     </div>
                 </div>

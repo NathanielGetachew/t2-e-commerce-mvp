@@ -1,8 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import type { Order, OrderStatus } from "@/app/home-client"
+
 import type { User as MockUser } from "@/app/auth/actions"
+
+// Define shared Order types for the dashboard
+export type DashboardOrderStatus = 'ordered' | 'warehouse_china' | 'shipped' | 'customs_addis' | 'delivered'
+
+export interface DashboardOrder {
+  id: string
+  customerName: string
+  customerEmail: string
+  product: string
+  totalAmount: number
+  status: DashboardOrderStatus
+}
+
+
 
 // Import modular components
 import { AdminSidebar } from "./admin/admin-sidebar"
@@ -14,8 +28,8 @@ import { AdminSupplyChain } from "./admin/admin-supply-chain"
 import { AdminAmbassadors } from "./admin/admin-ambassadors"
 
 interface AdminDashboardProps {
-  orders: Order[]
-  onStatusUpdate: (orderId: string, newStatus: OrderStatus) => void
+  orders: DashboardOrder[]
+  onStatusUpdate: (orderId: string, newStatus: any) => void
   user: MockUser | null
 }
 

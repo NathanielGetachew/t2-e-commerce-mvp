@@ -6,8 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Search, Package, Warehouse, Ship, Landmark, MapPin } from "lucide-react"
-import type { Order, OrderStatus } from "@/app/page"
+import { DashboardOrder, DashboardOrderStatus as OrderStatus } from "./admin-dashboard"
 import { cn } from "@/lib/utils"
+
+// Extend for tracking view if needed
+interface Order extends DashboardOrder {
+  timestamp: string
+}
+
 
 interface TrackingViewProps {
   orders: Order[]

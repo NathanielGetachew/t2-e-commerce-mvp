@@ -7,14 +7,18 @@ import { CartProvider } from "@/components/providers/cart-provider"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Toaster } from "@/components/ui/sonner"
 
-import { Inter, Plus_Jakarta_Sans as V0_Font_Plus_Jakarta_Sans, IBM_Plex_Mono as V0_Font_IBM_Plex_Mono, Lora as V0_Font_Lora } from 'next/font/google'
+// import { Inter } from 'next/font/google'
+// Commented out unused fonts to avoid network timeout during build
+// import { Plus_Jakarta_Sans as V0_Font_Plus_Jakarta_Sans, IBM_Plex_Mono as V0_Font_IBM_Plex_Mono, Lora as V0_Font_Lora } from 'next/font/google'
 
 // Initialize fonts
-const _plusJakartaSans = V0_Font_Plus_Jakarta_Sans({ subsets: ['latin'], weight: ["200", "300", "400", "500", "600", "700", "800"] })
-const _ibmPlexMono = V0_Font_IBM_Plex_Mono({ subsets: ['latin'], weight: ["100", "200", "300", "400", "500", "600", "700"] })
-const _lora = V0_Font_Lora({ subsets: ['latin'], weight: ["400", "500", "600", "700"] })
+// const _plusJakartaSans = V0_Font_Plus_Jakarta_Sans({ subsets: ['latin'], weight: ["200", "300", "400", "500", "600", "700", "800"] })
+// const _ibmPlexMono = V0_Font_IBM_Plex_Mono({ subsets: ['latin'], weight: ["100", "200", "300", "400", "500", "600", "700"] })
+// const _lora = V0_Font_Lora({ subsets: ['latin'], weight: ["400", "500", "600", "700"] })
 
-const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] })
+// const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] })
+const inter = { className: "font-sans" } // Fallback to system font
+
 
 export const metadata: Metadata = {
   title: "T2 - China to Ethiopia. Simplified.",
@@ -27,15 +31,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
+  const content = (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <ClerkProvider>
-          <CartProvider>{children}</CartProvider>
-          <Toaster richColors />
-        </ClerkProvider>
+        <CartProvider>{children}</CartProvider>
+        <Toaster richColors />
         <Analytics />
       </body>
     </html>
+  )
+
+  if (!clerkKey || clerkKey.startsWith("pk_test_placeholder") || clerkKey.startsWith("pk_test_Y2xlcms")) {
+    return content
+  }
+
+  return (
+    <ClerkProvider publishableKey={clerkKey}>
+      {content}
+    </ClerkProvider>
   )
 }

@@ -129,6 +129,35 @@ async function main() {
       },
     },
   })
+
+  // Orders verify the pricing logic
+  const order1 = await prisma.order.create({
+    data: {
+      orderNumber: "ORD-2026-001",
+      userId: (await admin).id, // Admin used as customer here
+      status: "PAID",
+      subtotalCents: 2148900,
+      totalCents: 2148900, // No extra discounts for now
+      items: {
+        create: [
+          {
+            productId: p1.id, // Lenovo Laptop
+            quantity: 5, // Single tier price (1-49): 129900
+            appliedUnitPriceCents: 129900,
+            lineTotalCents: 129900 * 5,
+          },
+          {
+            productId: p2.id, // Hydraulic Press
+            quantity: 2, // Single tier price (1-4): 849900
+            appliedUnitPriceCents: 849900,
+            lineTotalCents: 849900 * 2,
+          }
+        ]
+      }
+    }
+  })
+
+  console.log({ categories, users: [superAdmin, admin, ambassador], products: [p1, p2], shipments: 1, orders: 1 })
 }
 
 main()

@@ -30,7 +30,7 @@ export function AdminCoupons({ user }: AdminCouponsProps) {
 
     const loadData = async () => {
         setLoading(true)
-        if (user?.role === "super-admin" || user?.role === "admin") {
+        if (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") {
             const data = await getCoupons()
             setCoupons(data)
         }
@@ -61,7 +61,7 @@ export function AdminCoupons({ user }: AdminCouponsProps) {
                     <h2 className="text-2xl font-bold tracking-tight">Coupons</h2>
                     <p className="text-muted-foreground">Manage discount codes and promotions.</p>
                 </div>
-                {user?.role === "super-admin" && (
+                {user?.role === "SUPER_ADMIN" && (
                     <Dialog open={isAddCouponOpen} onOpenChange={setIsAddCouponOpen}>
                         <DialogTrigger asChild>
                             <Button><Plus className="mr-2 h-4 w-4" /> Create Coupon</Button>

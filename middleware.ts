@@ -7,11 +7,18 @@ const isPublicRoute = createRouteMatcher([
   "/categories(.*)",
   "/search(.*)",
   "/api/webhooks/stripe",
+  "/shop(.*)",
+  "/track(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/auth(.*)", // Make all auth routes public to prevent Clerk redirect on custom pages
 ])
 
+const isMockMode = !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_placeholder") || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_Y2xlcms")
+
 export default clerkMiddleware(async (auth, req) => {
+  if (isMockMode) return NextResponse.next()
+
   const { sessionClaims, userId } = await auth()
   const role = sessionClaims?.publicMetadata?.role
 

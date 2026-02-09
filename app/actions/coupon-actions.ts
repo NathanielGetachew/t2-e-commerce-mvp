@@ -32,7 +32,7 @@ async function writeJSON(filePath: string, data: any) {
 
 export async function getCoupons(): Promise<Coupon[]> {
     const user = await getUser()
-    if (!user || (user.role !== "admin" && user.role !== "super-admin")) {
+    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
         return []
     }
     return await readJSON(COUPONS_FILE)
@@ -45,7 +45,7 @@ export async function createCoupon(data: {
     validHours: number
 }) {
     const user = await getUser()
-    if (!user || user.role !== "super-admin") {
+    if (!user || user.role !== "SUPER_ADMIN") {
         return { error: "Only Super Admin can create coupons" }
     }
 

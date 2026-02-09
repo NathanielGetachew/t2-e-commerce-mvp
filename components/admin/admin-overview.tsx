@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { DollarSign, Package, Users, TrendingUp } from "lucide-react"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Pie, PieChart, Cell } from "recharts"
-import type { Order, OrderStatus } from "@/app/page"
+import { DashboardOrder as Order, DashboardOrderStatus as OrderStatus } from "../admin-dashboard"
 import type { User } from "@/app/auth/actions"
+
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -76,7 +78,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {user?.role === "super-admin" && (
+                {user?.role === "SUPER_ADMIN" && (
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
@@ -114,7 +116,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
                     </CardContent>
                 </Card>
 
-                {user?.role === "super-admin" && (
+                {user?.role === "SUPER_ADMIN" && (
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Order Value</CardTitle>
@@ -130,7 +132,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {user?.role === "super-admin" && (
+                {user?.role === "SUPER_ADMIN" && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Revenue Trend</CardTitle>
@@ -153,7 +155,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
                     </Card>
                 )}
 
-                <Card className={cn(user?.role !== "super-admin" && "col-span-full")}>
+                <Card className={cn(user?.role !== "SUPER_ADMIN" && "col-span-full")}>
                     <CardHeader>
                         <CardTitle>Order Distribution</CardTitle>
                         <CardDescription>Status breakdown of current orders</CardDescription>
@@ -223,7 +225,7 @@ export function AdminOverview({ orders, user, onStatusUpdate }: AdminOverviewPro
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Select value={order.status} onValueChange={(value) => onStatusUpdate(order.id, value as OrderStatus)}>
+                                        <Select value={order.status} onValueChange={(value: string) => onStatusUpdate(order.id, value as OrderStatus)}>
                                             <SelectTrigger className="w-[140px] h-8 text-xs">
                                                 <SelectValue />
                                             </SelectTrigger>

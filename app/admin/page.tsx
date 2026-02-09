@@ -1,18 +1,7 @@
-import { redirect } from "next/navigation"
-import { getUser } from "../auth/actions"
+import { redirect } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
-  const user = await getUser()
-
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  const isAdmin = user.role === "admin" || user.role === "super-admin"
-
-  if (!isAdmin) {
-    redirect("/")
-  }
-
-  redirect("/?tab=admin")
+  redirect('/admin/dashboard')
 }

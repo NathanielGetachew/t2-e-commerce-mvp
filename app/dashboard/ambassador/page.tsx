@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from "react"
 import { getUser, User } from "@/app/auth/actions"
 import { updateCustomCode, getReferralStats } from "@/app/actions/affiliate-actions"
@@ -51,15 +53,15 @@ export default function AmbassadorDashboard() {
         setUser(u)
         setNewCode(u.customCode || u.referralCode || "")
 
-        if (u.embassadorStatus === 'approved' || u.isAmbassador) {
+        if (u.ambassadorStatus === 'approved' || u.isAmbassador) {
             const s = await getReferralStats(u.id)
             if (s) {
                 setStats({
                     clicks: s.metrics.clicks,
                     conversions: s.metrics.conversions,
                     revenueGenerated: s.metrics.revenueGenerated,
-                    totalEarnings: s.totalEarnings,
-                    commissionRate: s.commissionRate
+                    totalEarnings: s.totalEarnings || 0,
+                    commissionRate: s.commissionRate || 5
                 })
             }
         }
@@ -296,16 +298,12 @@ export default function AmbassadorDashboard() {
     return (
         <div className="min-h-screen bg-background pb-20">
             <Header
-                activeTab="ambassador"
-                onTabChange={(tab) => {
-                    window.location.href = `/?tab=${tab}`
-                }}
                 user={user}
-                isAdmin={user.role === 'admin' || user.role === 'super-admin'}
+                isAdmin={user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'}
             />
 
             <div className="container mx-auto max-w-5xl px-4 pt-24 text-left">
-                {!user.ambassadorStatus || user.ambassadorStatus === 'none' ? renderApplication() :
+                {!user.ambassadorStatus ? renderApplication() :
                     user.ambassadorStatus === 'pending' ? renderPending() :
                         user.ambassadorStatus === 'rejected' ? renderRejected() :
                             renderDashboard()}

@@ -4,6 +4,15 @@ import { useEffect, useState } from "react"
 import { MessageCircle } from "lucide-react"
 import Script from "next/script"
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'elevenlabs-convai': any
+    }
+  }
+}
+
+
 export function ElevenLabsWidget() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showWidget, setShowWidget] = useState(false)

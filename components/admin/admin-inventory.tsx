@@ -187,11 +187,11 @@ export function AdminInventory({ user }: AdminInventoryProps) {
 
                             <div className="grid gap-2">
                                 <Label>Tags (comma separated)</Label>
-                                <Input value={Array.isArray(newProduct.tags) ? newProduct.tags.join(', ') : (newProduct.tags || "")} onChange={e => setNewProduct({ ...newProduct, tags: e.target.value })} placeholder="electronics, gadget, sale" />
+                                <Input value={Array.isArray(newProduct.tags) ? newProduct.tags.join(', ') : (newProduct.tags || "")} onChange={e => setNewProduct({ ...newProduct, tags: e.target.value as any })} placeholder="electronics, gadget, sale" />
                             </div>
 
                             <div className="flex items-center space-x-2 border p-3 rounded-md">
-                                <Switch id="instock" checked={newProduct.inStock !== false} onCheckedChange={c => setNewProduct({ ...newProduct, inStock: c })} />
+                                <Switch id="instock" checked={newProduct.inStock !== false} onCheckedChange={(c: boolean) => setNewProduct({ ...newProduct, inStock: c })} />
                                 <Label htmlFor="instock" className="cursor-pointer">In Stock</Label>
                             </div>
 
@@ -250,11 +250,11 @@ export function AdminInventory({ user }: AdminInventoryProps) {
 
                         <div className="grid gap-2">
                             <Label>Tags (comma separated)</Label>
-                            <Input value={Array.isArray(newProduct.tags) ? newProduct.tags.join(', ') : (newProduct.tags || "")} onChange={e => setNewProduct({ ...newProduct, tags: e.target.value })} />
+                            <Input value={Array.isArray(newProduct.tags) ? newProduct.tags.join(', ') : (newProduct.tags || "")} onChange={e => setNewProduct({ ...newProduct, tags: e.target.value as any })} />
                         </div>
 
                         <div className="flex items-center space-x-2 border p-3 rounded-md">
-                            <Switch id="edit-instock" checked={newProduct.inStock !== false} onCheckedChange={c => setNewProduct({ ...newProduct, inStock: c })} />
+                            <Switch id="edit-instock" checked={newProduct.inStock !== false} onCheckedChange={(c: boolean) => setNewProduct({ ...newProduct, inStock: c })} />
                             <Label htmlFor="edit-instock" className="cursor-pointer">In Stock</Label>
                         </div>
 
@@ -358,7 +358,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                                         Proposed by <span className="font-medium text-foreground">{proposal.proposedBy}</span>
                                     </div>
 
-                                    {proposal.status === 'pending' && user?.role === 'super-admin' && (
+                                    {proposal.status === 'pending' && user?.role === 'SUPER_ADMIN' && (
                                         <div className="flex gap-2 pt-2">
                                             <Button size="sm" variant="outline" className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => handleRejectProposal(proposal.id)}>
                                                 Reject
