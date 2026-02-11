@@ -1,11 +1,9 @@
-import { auth } from "@clerk/nextjs/server"
-
 export type AppRole = "SUPER_ADMIN" | "ADMIN" | "CUSTOMER"
 
+// Placeholder implementation while running without Clerk.
+// In dev/mock mode we don't have a global auth context here, so these helpers
+// should be replaced with route-specific logic if needed.
 export async function getClerkRole(): Promise<AppRole> {
-  const { sessionClaims } = await auth()
-  const role = (sessionClaims as any)?.publicMetadata?.role
-  if (role === "SUPER_ADMIN" || role === "ADMIN" || role === "CUSTOMER") return role
   return "CUSTOMER"
 }
 

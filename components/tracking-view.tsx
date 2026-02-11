@@ -32,6 +32,7 @@ const STATUS_STEPS: { status: OrderStatus; label: string; icon: any }[] = [
 export function TrackingView({ orders, initialSearchId = "", onSearchIdChange }: TrackingViewProps) {
   const [searchId, setSearchId] = useState(initialSearchId)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialSearchId) {
@@ -53,11 +54,9 @@ export function TrackingView({ orders, initialSearchId = "", onSearchIdChange }:
   const handleSearch = () => {
     const order = orders.find((o) => o.id === searchId)
     setSelectedOrder(order || null)
+    setError(order ? null : "We couldn't find an order with that ID. Please check and try again.")
     if (onSearchIdChange) {
       onSearchIdChange(searchId)
-    }
-    if (!order) {
-      alert("Order not found. Please check the Order ID.")
     }
   }
 
@@ -72,22 +71,31 @@ export function TrackingView({ orders, initialSearchId = "", onSearchIdChange }:
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{"Track Your Order"}</CardTitle>
-          <CardDescription>{"Enter your Order ID to view real-time shipment status"}</CardDescription>
+          <CardDescription>{"Enter your Order ID to follow your shipment from China to delivery."}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Enter Order ID"
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="e.g. T2-ORD-2026-0001"
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={handleSearch} className="min-w-[120px]">
+                {"Search"}
+              </Button>
             </div>
-            <Button onClick={handleSearch}>{"Search"}</Button>
+            {error && (
+              <p className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

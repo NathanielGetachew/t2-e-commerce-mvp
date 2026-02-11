@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, ShieldCheck, Clock, ShoppingCart, Plane, Package } from "lucide-react"
 import { useState, useEffect } from "react"
 import { TypewriterEffect } from "@/components/ui/typewriter-effect"
+import { useRouter } from "next/navigation"
 
 interface HeroProps {
-  onStartShopping?: () => void
+  isAuthenticated: boolean
 }
 
 function FlippingBadge() {
@@ -49,7 +50,17 @@ function FlippingBadge() {
   )
 }
 
-export function Hero({ onStartShopping }: HeroProps) {
+export function Hero({ isAuthenticated }: HeroProps) {
+  const router = useRouter()
+
+  const handleStartShopping = () => {
+    if (isAuthenticated) {
+      router.push("/shop")
+    } else {
+      router.push("/auth/login?next=/shop")
+    }
+  }
+
   const headlineWords = [
     { text: "Where" },
     { text: "Time", className: "text-primary" },
@@ -82,7 +93,11 @@ export function Hero({ onStartShopping }: HeroProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
-          <Button size="lg" onClick={onStartShopping} className="h-14 px-8 text-lg gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
+          <Button
+            size="lg"
+            onClick={handleStartShopping}
+            className="h-14 px-8 text-lg gap-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
+          >
             Start Shopping <ArrowRight className="h-5 w-5" />
           </Button>
           <Button variant="outline" size="lg" className="h-14 px-8 text-lg gap-2">

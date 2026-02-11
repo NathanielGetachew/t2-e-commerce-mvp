@@ -1,0 +1,42 @@
+[
+    {
+        "id": "ORD-1234-5678",
+        "customerName": "Abebe Kebede",
+        "customerEmail": "abebe@example.com",
+        "product": "Industrial sewing machine x2",
+        "totalAmount": 150000,
+        "status": "ordered"
+    },
+    {
+        "id": "ORD-8765-4321",
+        "customerName": "Sara Tadesse",
+        "customerEmail": "sara@gmail.com",
+        "product": "Solar Panels (Bulk)",
+        "totalAmount": 450000,
+        "status": "warehouse_china"
+    },
+    {
+        "id": "ORD-5544-2211",
+        "customerName": "Dawit Haile",
+        "customerEmail": "dawit.h@b2b.com",
+        "product": "Coffee Processing Unit",
+        "totalAmount": 2200000,
+        "status": "shipped"
+    },
+    {
+        "id": "ORD-9988-7766",
+        "customerName": "Tigist Mekonnen",
+        "customerEmail": "tigist.m@retail.com",
+        "product": "Commercial Blender",
+        "totalAmount": 12500,
+        "status": "customs_addis"
+    },
+    {
+        "id": "ORD-1122-3344",
+        "customerName": "Yonas Mulatu",
+        "customerEmail": "yonas@tech.com",
+        "product": "Heavy Duty Laptops (x10)",
+        "totalAmount": 650000,
+        "status": "delivered"
+    }
+]

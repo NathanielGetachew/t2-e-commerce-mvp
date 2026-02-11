@@ -8,7 +8,7 @@ import { ShoppingCart } from "lucide-react"
 interface Product {
     id: string
     name: string
-    singlePriceCents: number
+    price: number
     images: string[]
     category?: string
 }
@@ -72,7 +72,7 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
                         <div className="flex items-center justify-between pt-2">
                             <div className="flex flex-col">
                                 <span className="text-lg font-bold text-primary">
-                                    ${(product.singlePriceCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                    {product.price.toLocaleString('en-ET')} ETB
                                 </span>
                                 <span className="text-xs text-muted-foreground">Retail Price</span>
                             </div>

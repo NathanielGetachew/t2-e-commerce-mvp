@@ -1,6 +1,4 @@
 "use server"
-
-import { currentUser } from "@clerk/nextjs/server"
 import { UserRole } from "@prisma/client"
 import { prisma, isDatabaseAvailable } from "@/lib/prisma"
 
@@ -49,80 +47,35 @@ export interface User {
 
 
 export async function getUser(): Promise<User | null> {
-    let clerkUser = null
-    try {
-        clerkUser = await currentUser()
-    } catch (error) {
-        console.warn("Clerk currentUser() failed (likely due to missing/invalid keys). Falling back to mock/guest mode.", error)
-    }
+    // For development, we run purely in mock mode (no Clerk).
+    // We first try the database if available, otherwise fall back to the mock-session cookie.
 
-    if (!clerkUser) {
-        // Return null or mock user based on db availability
-        if (!isDatabaseAvailable) {
-            // Check for mock session cookie
-            const cookieStore = await cookies()
-            const mockSession = cookieStore.get("mock-session")
+    if (!isDatabaseAvailable) {
+        // Check for mock session cookie
+        const cookieStore = await cookies()
+        const mockSession = cookieStore.get("mock-session")
 
-            if (mockSession) {
-                try {
-                    const sessionData = JSON.parse(mockSession.value)
-                    return {
-                        id: sessionData.id,
-                        email: sessionData.email,
-                        fullName: sessionData.fullName,
-                        role: sessionData.role as UserRole, // Ensure role matches UserRole type
-                        isAmbassador: !!sessionData.isAmbassador
-                    }
-                } catch (e) {
-                    console.error("Failed to parse mock session", e)
+        if (mockSession) {
+            try {
+                const sessionData = JSON.parse(mockSession.value)
+                return {
+                    id: sessionData.id,
+                    email: sessionData.email,
+                    fullName: sessionData.fullName,
+                    role: sessionData.role as UserRole, // Ensure role matches UserRole type
+                    isAmbassador: !!sessionData.isAmbassador
                 }
+            } catch (e) {
+                console.error("Failed to parse mock session", e)
             }
-
-            // If no DB and no Clerk, we can't really "autologin" unless we want a default mock user.
-            // But for build safety, return null is safer.
-            // OR, if we want to test "logged in" state, we could return a mock user.
-            // Let's return null to be safe for now, avoiding Header rendering UserNav.
-            return null
         }
+
         return null
     }
 
-    if (!isDatabaseAvailable) {
-        return {
-            id: "pending",
-            email: clerkUser.emailAddresses[0]?.emailAddress || "",
-            fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
-            role: "CUSTOMER" as UserRole,
-            isAmbassador: false
-        }
-    }
-
-    // Find in DB
-    const dbUser = await prisma.user.findUnique({
-        where: { clerkId: clerkUser.id }
-    })
-
-    if (!dbUser) {
-        // If Clerk has user but DB doesn't (race condition or first login hook failed)
-        // We can return a basic object or try to create sync.
-        // For now, return null or basics.
-        // Ideally the webhook handles creation, but let's be robust.
-        return {
-            id: "pending",
-            email: clerkUser.emailAddresses[0]?.emailAddress || "",
-            fullName: `${clerkUser.firstName} ${clerkUser.lastName}`.trim(),
-            role: "CUSTOMER" as UserRole,
-            isAmbassador: false
-        }
-    }
-
-    return {
-        id: dbUser.id,
-        email: dbUser.email || "",
-        fullName: dbUser.name || "",
-        role: dbUser.role,
-        isAmbassador: dbUser.isAmbassador
-    }
+    // If we do have a DB, we could in the future look up a user from a custom session.
+    // For now, return null to keep behavior simple in development.
+    return null
 }
 
 export async function signOut() {

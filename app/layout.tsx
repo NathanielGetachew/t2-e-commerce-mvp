@@ -4,7 +4,6 @@ import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { CartProvider } from "@/components/providers/cart-provider"
-import { ClerkProvider } from "@clerk/nextjs"
 import { Toaster } from "@/components/ui/sonner"
 
 // import { Inter } from 'next/font/google'
@@ -31,8 +30,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-
   const content = (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
@@ -43,13 +40,5 @@ export default function RootLayout({
     </html>
   )
 
-  if (!clerkKey || clerkKey.startsWith("pk_test_placeholder") || clerkKey.startsWith("pk_test_Y2xlcms")) {
-    return content
-  }
-
-  return (
-    <ClerkProvider publishableKey={clerkKey}>
-      {content}
-    </ClerkProvider>
-  )
+  return content
 }

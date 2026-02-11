@@ -6,7 +6,6 @@ import { Menu, X, ShoppingCart, LogOut, User as UserIcon, Users } from "lucide-r
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { useClerk } from "@clerk/nextjs"
 import type { User } from "@/app/auth/actions"
 import { cn } from "@/lib/utils"
 
@@ -16,8 +15,6 @@ interface HeaderProps {
   user: User | null
   isAdmin: boolean
 }
-
-const isMockMode = !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_placeholder") || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_test_Y2xlcms")
 
 export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -41,12 +38,13 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
   ].filter((item) => item.visible)
 
   const isHome = pathname === "/"
+  const useTransparentHomeStyle = isHome && !isScrolled && !!user
 
   return (
     <header
       className={cn(
         "fixed top-0 z-50 w-full transition-all duration-300",
-        (isScrolled || !isHome) ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent border-transparent"
+        (isScrolled || !isHome || !useTransparentHomeStyle) ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent border-transparent"
       )}
     >
       <div className="container mx-auto max-w-7xl px-4">
@@ -54,13 +52,13 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
           <Link href="/" className="flex items-center gap-2 group">
             <div className={cn(
               "font-bold text-2xl px-3 py-1.5 rounded-lg group-hover:scale-105 transition-transform shadow-md",
-              (isScrolled || !isHome) ? "bg-primary text-primary-foreground" : "bg-white text-black"
+              (isScrolled || !isHome || !useTransparentHomeStyle) ? "bg-primary text-primary-foreground" : "bg-white text-black"
             )}>
               {"T2"}
             </div>
             <span className={cn(
               "text-sm font-medium hidden sm:inline",
-              (isScrolled || !isHome) ? "text-muted-foreground" : "text-white/90"
+              (isScrolled || !isHome || !useTransparentHomeStyle) ? "text-muted-foreground" : "text-white/90"
             )}>{"Titu"}</span>
           </Link>
 
@@ -76,8 +74,8 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
                   variant="ghost"
                   className={cn(
                     "text-sm font-medium hover:text-primary hover:bg-primary/10",
-                    pathname === item.href && ((isScrolled || !isHome) ? "bg-primary/10 text-primary" : "bg-white/20 text-white"),
-                    !(isScrolled || !isHome) && pathname !== item.href && "text-white hover:text-white hover:bg-white/10"
+                    pathname === item.href && ((isScrolled || !isHome || !useTransparentHomeStyle) ? "bg-primary/10 text-primary" : "bg-white/20 text-white"),
+                    !(isScrolled || !isHome || !useTransparentHomeStyle) && pathname !== item.href && "text-white hover:text-white hover:bg-white/10"
                   )}
                 >
                   {item.label}
@@ -88,29 +86,19 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
 
           <div className="flex items-center gap-2">
             {user ? (
-              isMockMode ? (
-                <MockUserNav
-                  user={user}
-                  isAdmin={isAdmin}
-                  cartCount={cartCount}
-                  onCartClick={onCartClick}
-                  signOutCallback={() => setMobileMenuOpen(false)}
-                />
-              ) : (
-                <ClerkUserNav
-                  user={user}
-                  isAdmin={isAdmin}
-                  cartCount={cartCount}
-                  onCartClick={onCartClick}
-                  signOutCallback={() => setMobileMenuOpen(false)}
-                />
-              )
+              <MockUserNav
+                user={user}
+                isAdmin={isAdmin}
+                cartCount={cartCount}
+                onCartClick={onCartClick}
+                signOutCallback={() => setMobileMenuOpen(false)}
+              />
             ) : (
               <>
                 <Link href="/auth/login">
                   <Button
-                    variant={isHome && !isScrolled ? "ghost" : "ghost"}
-                    className={cn(isHome && !isScrolled ? "text-white hover:text-white hover:bg-white/10" : "")}
+                    variant="ghost"
+                    className={cn(useTransparentHomeStyle ? "text-white hover:text-white hover:bg-white/10" : "")}
                     size="sm"
                   >
                     {"Login"}
@@ -119,7 +107,7 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
                 <Link href="/auth/sign-up">
                   <Button
                     size="sm"
-                    className={cn(isHome && !isScrolled ? "bg-white text-black hover:bg-white/90" : "")}
+                    className={cn(useTransparentHomeStyle ? "bg-white text-black hover:bg-white/90" : "")}
                   >
                     {"Sign Up"}
                   </Button>
@@ -130,7 +118,7 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
             <Button
               variant="ghost"
               size="icon"
-              className={cn("md:hidden", isHome && !isScrolled ? "text-white" : "")}
+              className={cn("md:hidden", useTransparentHomeStyle ? "text-white" : "")}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -156,45 +144,12 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
                   </Button>
                 </Link>
               ))}
-              {user && (
-                isMockMode ? (
-                  <MockMobileUserNav user={user} onSignOut={() => setMobileMenuOpen(false)} />
-                ) : (
-                  <ClerkMobileUserNav user={user} onSignOut={() => setMobileMenuOpen(false)} />
-                )
-              )}
+              {user && <MockMobileUserNav user={user} onSignOut={() => setMobileMenuOpen(false)} />}
             </div>
           </nav>
         )}
       </div>
     </header>
-  )
-}
-
-function ClerkUserNav({ user, isAdmin, cartCount, onCartClick, signOutCallback }: {
-  user: User,
-  isAdmin: boolean,
-  cartCount: number,
-  onCartClick?: () => void,
-  signOutCallback?: () => void
-}) {
-  const { signOut } = useClerk()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    if (signOutCallback) signOutCallback()
-    router.push("/")
-  }
-
-  return (
-    <UserNavContent
-      user={user}
-      isAdmin={isAdmin}
-      cartCount={cartCount}
-      onCartClick={onCartClick}
-      onSignOut={handleSignOut}
-    />
   )
 }
 
@@ -281,10 +236,10 @@ function UserNavContent({ user, isAdmin, cartCount, onCartClick, onSignOut }: {
         size="sm"
         onClick={() => router.push("/dashboard/ambassador")}
         className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
-        title="Ambassador Program"
+        title="Be an Ambassador"
       >
         <Users className="h-4 w-4" />
-        <span>Ambassador</span>
+        <span>Be an Ambassador</span>
       </Button>
 
       <Button variant="ghost" size="icon" onClick={onSignOut} title="Sign Out">
@@ -308,7 +263,7 @@ function MobileUserNavContent({ user, onSignOut, onMenuClose }: { user: User, on
         className="justify-start"
       >
         <Users className="mr-2 h-4 w-4" />
-        Ambassador Program
+        Be an Ambassador
       </Button>
       <Button variant="ghost" onClick={onSignOut} className="justify-start text-red-600">
         <LogOut className="mr-2 h-4 w-4" />

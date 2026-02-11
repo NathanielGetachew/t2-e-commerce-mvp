@@ -36,9 +36,9 @@ interface AdminDashboardProps {
 export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardProps) {
   const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'>('overview')
 
-  const handleLogout = () => {
-    // Determine logout path based on env/cookies/etc, but for now we'll just reload or redirect
-    window.location.reload()
+  const handleLogout = async () => {
+    // redirect to home which will handle auth check or just reload
+    window.location.href = '/'
   }
 
   return (
