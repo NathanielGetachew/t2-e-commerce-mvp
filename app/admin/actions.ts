@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getUser } from '@/app/auth/actions'
 import { prisma, isDatabaseAvailable } from '@/lib/prisma'
 import { DashboardOrderStatus } from '@/components/admin-dashboard'
+import { ShipmentStatus } from '@prisma/client'
 // import mockOrders from '@/app/lib/mock-db/orders.json' // We'll load this dynamically to avoid build-time static issues if needed, or just import
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -40,6 +41,39 @@ export async function updateOrderStatus(orderId: string, newStatus: DashboardOrd
     } catch (error) {
         console.error('Failed to update order status:', error)
         return { error: 'Failed to update status' }
+    }
+}
+
+export async function updateShipmentStatus(shipmentId: string, newStatus: string) {
+    try {
+        const user = await getUser()
+        if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+            return { error: 'Unauthorized' }
+        }
+
+        if (isDatabaseAvailable) {
+            await prisma.shipment.update({
+                where: { id: shipmentId },
+                data: { status: newStatus as ShipmentStatus }
+            })
+        } else {
+            const mockDbPath = path.join(process.cwd(), 'app/lib/mock-db/shipments.json')
+            const data = await fs.readFile(mockDbPath, 'utf-8')
+            const shipments = JSON.parse(data)
+            const shipmentIndex = shipments.findIndex((s: any) => s.id === shipmentId)
+            if (shipmentIndex >= 0) {
+                shipments[shipmentIndex].status = newStatus
+                await fs.writeFile(mockDbPath, JSON.stringify(shipments, null, 2))
+            } else {
+                return { error: 'Shipment not found' }
+            }
+        }
+
+        revalidatePath('/admin')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to update shipment status:', error)
+        return { error: 'Failed to update shipment status' }
     }
 }
 

@@ -65,11 +65,12 @@ async function getProductById(id: string): Promise<DetailProduct | null> {
   }
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const user = await getUser()
 
   if (!user) {
-    redirect(`/auth/login?next=${encodeURIComponent(`/shop/${params.id}`)}`)
+    redirect(`/auth/login?next=${encodeURIComponent(`/shop/${id}`)}`)
   }
 
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
@@ -77,7 +78,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     redirect("/admin")
   }
 
-  const product = await getProductById(params.id)
+  const product = await getProductById(id)
   if (!product) {
     notFound()
   }

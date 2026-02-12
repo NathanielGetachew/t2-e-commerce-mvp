@@ -6,7 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Package, Truck, ArrowRight, CheckCircle, Clock } from "lucide-react"
+import { Package, Truck, ArrowRight, CheckCircle, Clock, MoreVertical } from "lucide-react"
+import { updateShipmentStatus } from "@/app/admin/actions"
+import { toast } from "sonner"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Mock type for shipment, ideally from a shared type file
 interface Shipment {
@@ -29,6 +39,19 @@ const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
 
 export function AdminSupplyChain() {
     const [shipments, setShipments] = useState<Shipment[]>(mockShipments)
+    const [isUpdating, setIsUpdating] = useState<string | null>(null)
+
+    const handleStatusUpdate = async (shipmentId: string, newStatus: string) => {
+        setIsUpdating(shipmentId)
+        const result = await updateShipmentStatus(shipmentId, newStatus)
+        if (result.success) {
+            setShipments(prev => prev.map(s => s.id === shipmentId ? { ...s, status: newStatus } : s))
+            toast.success("Shipment status updated")
+        } else {
+            toast.error(result.error || "Failed to update status")
+        }
+        setIsUpdating(null)
+    }
 
     return (
         <div className="space-y-6">
@@ -103,7 +126,26 @@ export function AdminSupplyChain() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="sm">Update</Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" disabled={isUpdating === shipment.id}>
+                                                        {isUpdating === shipment.id ? "..." : "Update"}
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    {Object.keys(STATUS_CONFIG).map((status) => (
+                                                        <DropdownMenuItem
+                                                            key={status}
+                                                            onClick={() => handleStatusUpdate(shipment.id, status)}
+                                                            className={shipment.status === status ? "bg-accent" : ""}
+                                                        >
+                                                            {status}
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 )
