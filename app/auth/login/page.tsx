@@ -35,8 +35,8 @@ export default function Page() {
         throw new Error(result.error)
       }
 
-      if (result.role === "admin" || result.role === "super-admin") {
-        router.push("/admin")
+      if (result.role === "admin" || result.role === "super_admin" || result.role === "super-admin") {
+        router.push("/admin/dashboard") // Ensure it goes to dashboard, not just /admin which redirects
       } else {
         router.push("/")
       }

@@ -7,10 +7,16 @@ import { cn } from "@/lib/utils"
 interface AdminSidebarProps {
     activeView: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'
     setActiveView: (view: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors') => void
-    onLogout: () => void
 }
 
-export function AdminSidebar({ activeView, setActiveView, onLogout }: AdminSidebarProps) {
+import { signOut } from "@/app/auth/actions"
+
+export function AdminSidebar({ activeView, setActiveView }: AdminSidebarProps) {
+    const handleLogout = async () => {
+        await signOut()
+        window.location.href = "/"
+    }
+
     return (
         <div className="w-64 border-r bg-card min-h-screen p-4 flex flex-col gap-8">
             <div className="flex items-center gap-2 px-2">
@@ -68,7 +74,7 @@ export function AdminSidebar({ activeView, setActiveView, onLogout }: AdminSideb
                     <Settings className="h-4 w-4" />
                     Settings (Coming Soon)
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onLogout}>
+                <Button variant="ghost" className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
                     <LogOut className="h-4 w-4" />
                     Log Out
                 </Button>

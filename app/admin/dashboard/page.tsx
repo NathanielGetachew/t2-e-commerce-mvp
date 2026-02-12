@@ -1,7 +1,7 @@
 import { getUser } from '@/app/auth/actions'
 import { redirect } from 'next/navigation'
 import { AdminDashboard } from '@/components/admin-dashboard'
-import { getAdminOrders, updateOrderStatus } from '../actions'
+import { getAdminOrders, updateOrderStatus, getAdminAnalytics } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,11 +12,14 @@ export default async function AdminDashboardPage() {
         redirect('/')
     }
 
-    const orders = await getAdminOrders()
+    const { orders, total } = await getAdminOrders(1, 10)
+    const analytics = await getAdminAnalytics()
 
     return (
         <AdminDashboard
             orders={orders}
+            totalOrders={total}
+            analytics={analytics}
             user={user}
             onStatusUpdate={updateOrderStatus}
         />

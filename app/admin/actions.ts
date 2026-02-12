@@ -43,36 +43,75 @@ export async function updateOrderStatus(orderId: string, newStatus: DashboardOrd
     }
 }
 
-export async function getAdminOrders() {
+
+export async function getAdminOrders(page = 1, limit = 10) {
     const user = await getUser()
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-        return []
+        return { orders: [], total: 0 }
     }
+
+    const skip = (page - 1) * limit
 
     if (isDatabaseAvailable) {
         // Fetch from Prisma and map to DashboardOrder
-        const orders = await prisma.order.findMany({
-            include: { user: true, items: { include: { product: true } } },
-            orderBy: { createdAt: 'desc' },
-            take: 20
-        })
+        const [orders, total] = await prisma.$transaction([
+            prisma.order.findMany({
+                include: { user: true, items: { include: { product: true } } },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.order.count()
+        ])
 
-        return orders.map(o => ({
-            id: o.id,
-            customerName: o.user.name || 'Unknown',
-            customerEmail: o.user.email || 'No Email',
-            product: o.items.map(i => i.product.name).join(', '),
-            totalAmount: o.totalCents / 100, // Assuming cents
-            status: o.status.toLowerCase() as DashboardOrderStatus // simple mapping for mvp
-        }))
+        return {
+            orders: orders.map(o => ({
+                id: o.id,
+                customerName: o.user.name || 'Unknown',
+                customerEmail: o.user.email || 'No Email',
+                product: o.items.map(i => i.product.name).join(', '),
+                totalAmount: o.totalCents / 100, // Assuming cents
+                status: o.status.toLowerCase() as DashboardOrderStatus // simple mapping for mvp
+            })),
+            total
+        }
     } else {
         const mockDbPath = path.join(process.cwd(), 'app/lib/mock-db/orders.json')
         try {
             const data = await fs.readFile(mockDbPath, 'utf-8')
-            return JSON.parse(data)
+            const allOrders = JSON.parse(data)
+            const total = allOrders.length
+            const startIndex = (page - 1) * limit
+            const endIndex = startIndex + limit
+            const paginatedOrders = allOrders.slice(startIndex, endIndex)
+            return { orders: paginatedOrders, total }
         } catch (e) {
             console.error("Mock orders not found", e)
-            return []
+            return { orders: [], total: 0 }
+        }
+    }
+}
+
+export async function getAdminAnalytics() {
+    // Mock analytics data
+    return {
+        revenueTrend: [
+            { month: "Jan", revenue: 125000 },
+            { month: "Feb", revenue: 145000 },
+            { month: "Mar", revenue: 167000 },
+            { month: "Apr", revenue: 189000 },
+            { month: "May", revenue: 210000 },
+        ],
+        topProducts: [
+            { name: "Industrial Sewing Machine", sales: 120, revenue: 1800000 },
+            { name: "Solar Panels (Bulk)", sales: 85, revenue: 4250000 },
+            { name: "Coffee Processing Unit", sales: 40, revenue: 8800000 },
+            { name: "Commercial Blender", sales: 210, revenue: 630000 },
+        ],
+        traffic: {
+            visitors: 12500,
+            conversionRate: 3.2,
+            avgSession: "4m 12s"
         }
     }
 }

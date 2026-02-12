@@ -29,22 +29,19 @@ import { AdminAmbassadors } from "./admin/admin-ambassadors"
 
 interface AdminDashboardProps {
   orders: DashboardOrder[]
+  totalOrders: number
+  analytics: any // Replace with proper type if available, or define it here
   onStatusUpdate: (orderId: string, newStatus: any) => void
   user: MockUser | null
 }
 
-export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardProps) {
+export function AdminDashboard({ orders, totalOrders, analytics, onStatusUpdate, user }: AdminDashboardProps) {
   const [activeView, setActiveView] = useState<'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'>('overview')
-
-  const handleLogout = async () => {
-    // redirect to home which will handle auth check or just reload
-    window.location.href = '/'
-  }
 
   return (
     <div className="flex min-h-screen bg-muted/40 font-sans">
       {/* Sidebar */}
-      <AdminSidebar activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout} />
+      <AdminSidebar activeView={activeView} setActiveView={setActiveView} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
@@ -54,7 +51,13 @@ export function AdminDashboard({ orders, onStatusUpdate, user }: AdminDashboardP
         {/* View Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {activeView === 'overview' && (
-            <AdminOverview orders={orders} user={user} onStatusUpdate={onStatusUpdate} />
+            <AdminOverview
+              orders={orders}
+              totalOrders={totalOrders}
+              analytics={analytics}
+              user={user}
+              onStatusUpdate={onStatusUpdate}
+            />
           )}
           {activeView === 'inventory' && (
             <AdminInventory user={user} />
