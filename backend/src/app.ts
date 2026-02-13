@@ -80,9 +80,11 @@ class App {
         // API routes
         this.app.use('/api/auth', require('./routes/auth.routes').default);
         this.app.use('/api/products', require('./routes/product.routes').default);
-        // this.app.use('/api/admin', adminRoutes);
-        // this.app.use('/api/affiliates', affiliatesRoutes);
-        // this.app.use('/api/coupons', couponsRoutes);
+        this.app.use('/api/admin', require('./routes/admin.routes').default);
+        this.app.use('/api/affiliates', require('./routes/affiliate.routes').default);
+        this.app.use('/api/coupons', require('./routes/coupon.routes').default);
+        this.app.use('/api/settings', require('./routes/settings.routes').default);
+        this.app.use('/api/webhooks', require('./routes/webhook.routes').default);
 
         // Serve uploaded files
         this.app.use('/uploads', express.static(config.upload.uploadDir));

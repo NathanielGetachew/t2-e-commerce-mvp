@@ -245,3 +245,30 @@ model ShipmentStatusHistory {
   @@index([shipmentId])
   @@index([changedAt])
 }
+
+model Coupon {
+  id                   String   @id @default(cuid())
+  code                 String   @unique
+  discountPercentage   Int      // 1-100
+  targetProductId      String?
+  validUntil           DateTime
+  maxUses              Int?
+  currentUses          Int      @default(0)
+  minOrderAmountCents  Int      @default(0)
+  createdBy            String
+  createdAt            DateTime @default(now())
+  
+  @@index([code])
+  @@index([validUntil])
+}
+
+model SystemSettings {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  description String?
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@index([key])
+}
