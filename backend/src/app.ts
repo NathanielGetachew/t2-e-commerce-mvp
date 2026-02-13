@@ -79,10 +79,13 @@ class App {
 
         // API routes
         this.app.use('/api/auth', require('./routes/auth.routes').default);
+        this.app.use('/api/products', require('./routes/product.routes').default);
         // this.app.use('/api/admin', adminRoutes);
-        // this.app.use('/api/products', productsRoutes);
         // this.app.use('/api/affiliates', affiliatesRoutes);
         // this.app.use('/api/coupons', couponsRoutes);
+
+        // Serve uploaded files
+        this.app.use('/uploads', express.static(config.upload.uploadDir));
 
         // Root route
         this.app.get('/', (req: Request, res: Response) => {
