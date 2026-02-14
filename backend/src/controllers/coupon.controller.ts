@@ -43,7 +43,7 @@ export class CouponController {
      */
     static async getCoupons(req: Request, res: Response): Promise<Response> {
         try {
-            const { includeExpired } = req.query;
+            const includeExpired = req.query.includeExpired as string | undefined;
 
             const coupons = await CouponService.getAllCoupons(includeExpired === 'true');
 
@@ -83,7 +83,7 @@ export class CouponController {
      */
     static async deleteCoupon(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             await CouponService.deleteCoupon(id);
 
@@ -98,7 +98,7 @@ export class CouponController {
      * POST /api/coupons/cleanup
      * Delete expired coupons
      */
-    static async cleanupExpired(req: Request, res: Response): Promise<Response> {
+    static async cleanupExpired(_req: Request, res: Response): Promise<Response> {
         try {
             const count = await CouponService.deleteExpiredCoupons();
 

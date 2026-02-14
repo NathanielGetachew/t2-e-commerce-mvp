@@ -8,7 +8,7 @@ export class SettingsController {
      * GET /api/settings
      * Get all system settings
      */
-    static async getAll(req: Request, res: Response): Promise<Response> {
+    static async getAll(_req: Request, res: Response): Promise<Response> {
         try {
             const settings = await SettingsService.getAll();
 
@@ -25,7 +25,7 @@ export class SettingsController {
      */
     static async update(req: Request, res: Response): Promise<Response> {
         try {
-            const { key } = req.params;
+            const key = req.params.key as string;
             const { value, description } = req.body;
             const userId = req.user!.userId;
 
@@ -70,7 +70,7 @@ export class SettingsController {
      */
     static async reset(req: Request, res: Response): Promise<Response> {
         try {
-            const { key } = req.params;
+            const key = req.params.key as string;
             const userId = req.user!.userId;
 
             const setting = await SettingsService.reset(key, userId);

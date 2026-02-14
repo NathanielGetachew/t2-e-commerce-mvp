@@ -423,7 +423,7 @@ export class AdminService {
 
         return Array.from(monthMap.entries())
             .map(([key, revenue]) => {
-                const [year, month] = key.split('-');
+                const [_year, month] = key.split('-');
                 return {
                     month: months[parseInt(month) - 1],
                     revenue,

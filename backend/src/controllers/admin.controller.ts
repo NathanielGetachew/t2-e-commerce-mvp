@@ -40,7 +40,7 @@ export class AdminController {
      */
     static async getOrder(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             const order = await AdminService.getOrderById(id);
 
@@ -61,7 +61,7 @@ export class AdminController {
      */
     static async updateOrderStatus(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
             const { status } = req.body;
 
             const order = await AdminService.updateOrderStatus(id, status);
@@ -108,7 +108,7 @@ export class AdminController {
      */
     static async getShipment(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             const shipment = await AdminService.getShipmentById(id);
 
@@ -129,7 +129,7 @@ export class AdminController {
      */
     static async updateShipmentStatus(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
             const { status, notes } = req.body;
             const userId = req.user!.userId;
 
@@ -146,7 +146,7 @@ export class AdminController {
      * GET /api/admin/analytics
      * Get analytics data for admin dashboard
      */
-    static async getAnalytics(req: Request, res: Response): Promise<Response> {
+    static async getAnalytics(_req: Request, res: Response): Promise<Response> {
         try {
             const analytics = await AdminService.getAnalytics();
 

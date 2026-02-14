@@ -35,7 +35,7 @@ export class AffiliateController {
      * GET /api/affiliates/applications
      * Get pending applications (Admin only)
      */
-    static async getApplications(req: Request, res: Response): Promise<Response> {
+    static async getApplications(_req: Request, res: Response): Promise<Response> {
         try {
             const applications = await AffiliateService.getPendingApplications();
 
@@ -52,7 +52,7 @@ export class AffiliateController {
      */
     static async approveApplication(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             await AffiliateService.approveApplication(id);
 
@@ -69,7 +69,7 @@ export class AffiliateController {
      */
     static async rejectApplication(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             await AffiliateService.rejectApplication(id);
 
@@ -143,7 +143,7 @@ export class AffiliateController {
      * GET /api/affiliates
      * Get all ambassadors (Admin only)
      */
-    static async getAllAmbassadors(req: Request, res: Response): Promise<Response> {
+    static async getAllAmbassadors(_req: Request, res: Response): Promise<Response> {
         try {
             const ambassadors = await AffiliateService.getAllAmbassadors();
 

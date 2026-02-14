@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import { logger } from '../utils/logger';
-import config from '../config/env';
 
 /**
  * Payment Webhook Verification Service
