@@ -7,58 +7,23 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
-import { prisma, isDatabaseAvailable } from '@/lib/prisma'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { getProducts } from '@/app/actions/product-actions'
 
 export const dynamic = 'force-dynamic'
 
 async function getFeaturedProducts() {
-  if (!isDatabaseAvailable) {
-    try {
-      const mockDbPath = path.join(process.cwd(), 'app/lib/mock-db/products.json')
-      const data = await fs.readFile(mockDbPath, 'utf-8')
-      const mockProducts = JSON.parse(data)
-      return mockProducts.slice(0, 8).map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price, // Mock data uses 'price' instead of 'singlePriceCents'
-        images: [p.image],
-        category: p.category
-      }))
-    } catch (e) {
-      console.error("Failed to load mock products", e)
-      return []
-    }
-  }
-
-  const products = await prisma.product.findMany({
-    take: 8,
-    where: { isActive: true },
-    orderBy: { createdAt: 'desc' }
-  })
-
-  // Convert decimals/dates if needed for client components, but simple fields are fine
-  // Prisma returns plain objects mostly fine for server components, 
-  // but if we pass to client, we might need sanitization.
-  return products.map(p => ({
-    ...p,
-    price: p.singlePriceCents,
-    // ensure images is string[]
-    images: p.images as string[]
-  }))
+  const products = await getProducts()
+  return products.slice(0, 8)
 }
 
 async function getCategories() {
-  if (!isDatabaseAvailable) {
-    return [
-      { id: '1', name: 'Machinery', slug: 'machinery' },
-      { id: '2', name: 'Electronics', slug: 'electronics' },
-      { id: '3', name: 'Energy', slug: 'energy' },
-      { id: '4', name: 'Kitchen Equipment', slug: 'kitchen-equipment' }
-    ]
-  }
-  return prisma.category.findMany()
+  // Return mock categories for now
+  return [
+    { id: '1', name: 'Machinery', slug: 'machinery' },
+    { id: '2', name: 'Electronics', slug: 'electronics' },
+    { id: '3', name: 'Energy', slug: 'energy' },
+    { id: '4', name: 'Kitchen Equipment', slug: 'kitchen-equipment' }
+  ]
 }
 
 export default async function Page() {

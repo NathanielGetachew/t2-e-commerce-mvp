@@ -1,23 +1,7 @@
 "use server"
 import { UserRole } from "@prisma/client"
-import { prisma, isDatabaseAvailable } from "@/lib/prisma"
-
-// Helper for reading mock DB - adding this to support the custom login/signup pages
-// that were referencing these missing actions.
-import { promises as fs } from "fs"
-import path from "path"
+import { apiClient } from "@/lib/api"
 import { cookies } from "next/headers"
-
-const MOCK_DB_PATH = path.join(process.cwd(), "app/auth/mock-db.json")
-
-async function getMockUsers() {
-    try {
-        const data = await fs.readFile(MOCK_DB_PATH, "utf-8")
-        return JSON.parse(data)
-    } catch (e) {
-        return []
-    }
-}
 
 // Define a User type that matches what the UI and Mock system expects
 export interface User {
@@ -47,70 +31,29 @@ export interface User {
 
 
 export async function getUser(): Promise<User | null> {
-    // For development, we run purely in mock mode (no Clerk).
-    // We first try the database if available, otherwise fall back to the mock-session cookie.
-
-    if (!isDatabaseAvailable) {
-        // Check for mock session cookie
-        const cookieStore = await cookies()
-        const mockSession = cookieStore.get("mock-session")
-
-        if (mockSession) {
-            try {
-                const sessionData = JSON.parse(mockSession.value)
-                return {
-                    id: sessionData.id,
-                    email: sessionData.email,
-                    fullName: sessionData.fullName,
-                    role: sessionData.role as UserRole, // Ensure role matches UserRole type
-                    isAmbassador: !!sessionData.isAmbassador
-                }
-            } catch (e) {
-                console.error("Failed to parse mock session", e)
-            }
-        }
-
-        return null
-    }
-
-    // If we do have a DB, we could in the future look up a user from a custom session.
-    // For now, return null to keep behavior simple in development.
+    // For now, return null - we'll implement proper session checking later
+    // This would typically check for auth_token cookie and validate with backend
     return null
 }
 
 export async function signOut() {
-    // Clerk handles sign out via client component usually (useClerk), 
-    // but for server actions we can't clear cookies easily without Redirect.
-    // This function is mainly for the mock compatibility. 
-    // The Header component should calls `clerk.signOut()` on client.
-
-    // Clear mock session
-    const cookieStore = await cookies()
-    cookieStore.delete("mock-session")
+    // Call backend logout
+    await apiClient.logout()
 
     return { success: true }
 }
 
-export async function signIn(data: any) {
-    const users = await getMockUsers()
-    const user = users.find((u: any) => u.email === data.email && u.password === data.password)
+export async function signIn(data: { email: string; password: string }) {
+    const response = await apiClient.login(data.email, data.password)
 
-    if (!user) {
-        return { error: "Invalid email or password" }
+    if (!response.success) {
+        return { error: response.error || "Login failed" }
     }
 
-    // Note: This only works for the mock UI. 
-    // It doesn't actually sign the user into Clerk.
-
-    // Set cookie for mock session
-    const cookieStore = await cookies()
-    cookieStore.set("mock-session", JSON.stringify({
-        id: user.id || "mock-user-id",
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role.toUpperCase(),
-        isAmbassador: !!user.isAmbassador
-    }), { secure: false, httpOnly: true, path: '/' }) // secure false for localhost dev
+    const user = response.data?.user
+    if (!user) {
+        return { error: "Invalid response from server" }
+    }
 
     return {
         success: true,
@@ -119,45 +62,26 @@ export async function signIn(data: any) {
             id: user.id,
             email: user.email,
             fullName: user.fullName,
-            role: user.role.toUpperCase() as UserRole,
-            isAmbassador: !!user.isAmbassador
+            role: user.role as UserRole,
+            isAmbassador: user.isAmbassador || false
         }
     }
 }
 
-export async function signUp(data: any) {
-    const users = await getMockUsers()
+export async function signUp(data: { email: string; password: string; fullName: string; phone?: string }) {
+    const response = await apiClient.signup(data.email, data.password, data.fullName)
 
-    if (users.find((u: any) => u.email === data.email)) {
-        return { error: "User already exists" }
+    if (!response.success) {
+        return { error: response.error || "Signup failed" }
     }
 
-    // In a real app, we would create the user in Clerk and the DB.
-    // For now, we'll just simulate success for the UI.
     return { success: true }
 }
 
 export async function createAdmin(data: any) {
-    const users = await getMockUsers()
-
-    if (users.find((u: any) => u.email === data.email)) {
-        return { error: "User already exists" }
-    }
-
-    const newUser = {
-        id: `admin-${Date.now()}`,
-        email: data.email,
-        password: data.password,
-        fullName: data.fullName,
-        phone: data.phone,
-        role: "admin",
-        isAmbassador: false
-    }
-
-    users.push(newUser)
-    await fs.writeFile(MOCK_DB_PATH, JSON.stringify(users, null, 2))
-
-    return { success: true }
+    // This would need to be implemented in the backend
+    // For now, return error
+    return { error: "Admin creation not implemented via API yet" }
 }
 
 
