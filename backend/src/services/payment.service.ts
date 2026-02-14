@@ -24,7 +24,7 @@ export class PaymentService {
     /**
      * Verify Chapa webhook signature
      */
-    static verifyChapa Signature(
+    static verifyChapaSignature(
         payload: string,
         signature: string,
         secret: string

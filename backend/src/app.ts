@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -57,7 +57,7 @@ class App {
         this.app.use('/api/', limiter);
 
         // Request logging
-        this.app.use((req, res, next) => {
+        this.app.use((req, _res, next) => {
             logger.info(`${req.method} ${req.path}`, {
                 ip: req.ip,
                 userAgent: req.get('user-agent'),
@@ -68,7 +68,7 @@ class App {
 
     private initializeRoutes(): void {
         // Health check endpoint
-        this.app.get('/health', (req: Request, res: Response) => {
+        this.app.get('/health', (_req, res: Response) => {
             return ResponseHandler.success(res, {
                 status: 'healthy',
                 timestamp: new Date().toISOString(),
@@ -90,7 +90,7 @@ class App {
         this.app.use('/uploads', express.static(config.upload.uploadDir));
 
         // Root route
-        this.app.get('/', (req: Request, res: Response) => {
+        this.app.get('/', (_req, res: Response) => {
             return ResponseHandler.success(res, {
                 name: 'T2 E-commerce Backend API',
                 version: '1.0.0',

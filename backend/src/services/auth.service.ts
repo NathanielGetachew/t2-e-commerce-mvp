@@ -127,8 +127,7 @@ export class AuthService {
     static async createAdmin(
         email: string,
         password: string,
-        fullName: string,
-        phone?: string
+        fullName: string
     ): Promise<UserResponse> {
         // Check if user already exists
         const existingUser = await prisma.user.findFirst({
@@ -153,6 +152,7 @@ export class AuthService {
             data: {
                 email,
                 name: fullName,
+                password: hashedPassword,
                 clerkId: `admin_${Date.now()}_${Math.random().toString(36).substring(7)}`,
                 role: UserRole.ADMIN,
                 // password field needs to be added to schema

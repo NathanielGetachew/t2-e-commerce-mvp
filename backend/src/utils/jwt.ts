@@ -10,7 +10,7 @@ export interface JWTPayload {
 
 export class JWTService {
     static sign(payload: JWTPayload): string {
-        return jwt.sign(payload, config.jwt.secret, {
+        return (jwt.sign as any)(payload, config.jwt.secret, {
             expiresIn: config.jwt.expiresIn,
         });
     }

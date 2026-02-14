@@ -68,7 +68,7 @@ export class AuthController {
      * POST /api/auth/logout
      * Logout user
      */
-    static async logout(req: Request, res: Response): Promise<Response> {
+    static async logout(_req: Request, res: Response): Promise<Response> {
         try {
             // Clear auth cookie
             res.clearCookie('auth_token');
@@ -109,9 +109,9 @@ export class AuthController {
      */
     static async createAdmin(req: Request, res: Response): Promise<Response> {
         try {
-            const { email, password, fullName, phone } = req.body;
+            const { email, password, fullName } = req.body;
 
-            const user = await AuthService.createAdmin(email, password, fullName, phone);
+            const user = await AuthService.createAdmin(email, password, fullName);
 
             return ResponseHandler.success(
                 res,
