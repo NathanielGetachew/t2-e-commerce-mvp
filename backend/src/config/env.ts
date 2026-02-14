@@ -12,7 +12,7 @@ interface Config {
         expiresIn: string;
     };
     cors: {
-        origin: string;
+        origin: any;
     };
     rateLimit: {
         windowMs: number;
@@ -33,7 +33,7 @@ const config: Config = {
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     },
     cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        origin: process.env.CORS_ORIGIN || true, // Allow all origins in development
     },
     rateLimit: {
         windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
