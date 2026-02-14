@@ -53,7 +53,7 @@ export const authenticate = (
  */
 export const optionalAuth = (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction
 ): void => {
     try {

@@ -3,6 +3,7 @@ import { SettingsController } from '../controllers/settings.controller';
 import { authenticate } from '../middleware/auth';
 import { superAdminOnly } from '../middleware/authorize';
 import { validate } from '../middleware/validation';
+import { z } from 'zod';
 import { systemSettingSchema, batchSettingsSchema } from '../types/settings.types';
 
 const router = Router();

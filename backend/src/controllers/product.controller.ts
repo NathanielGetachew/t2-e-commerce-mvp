@@ -75,7 +75,7 @@ export class ProductController {
      */
     static async getProduct(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             const product = await ProductService.getProductById(id);
 
@@ -96,7 +96,7 @@ export class ProductController {
      */
     static async getProductBySlug(req: Request, res: Response): Promise<Response> {
         try {
-            const { slug } = req.params;
+            const slug = req.params.slug as string;
 
             const product = await ProductService.getProductBySlug(slug);
 
@@ -134,7 +134,7 @@ export class ProductController {
      */
     static async updateProduct(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
             const { bulkTiers, ...productData } = req.body;
 
             const product = await ProductService.updateProduct(id, productData, bulkTiers);
@@ -152,7 +152,7 @@ export class ProductController {
      */
     static async deleteProduct(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
 
             await ProductService.deleteProduct(id);
 
@@ -230,7 +230,7 @@ export class ProductController {
      */
     static async handleProposal(req: Request, res: Response): Promise<Response> {
         try {
-            const { id } = req.params;
+            const id = req.params.id as string;
             const { action } = req.body;
             const userId = req.user!.userId;
 
