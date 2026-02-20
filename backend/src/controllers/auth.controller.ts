@@ -15,9 +15,9 @@ export class AuthController {
 
             const result = await AuthService.signup(email, password, fullName);
 
-            // Set HTTP-only cookie
+            // Set cookie accessible to client JS (httpOnly: false)
             res.cookie('auth_token', result.token, {
-                httpOnly: true,
+                httpOnly: false,
                 secure: config.nodeEnv === 'production',
                 sameSite: 'lax',
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -27,6 +27,7 @@ export class AuthController {
                 res,
                 {
                     user: result.user,
+                    token: result.token,
                 },
                 'Account created successfully',
                 201
@@ -47,9 +48,9 @@ export class AuthController {
 
             const result = await AuthService.login(email, password);
 
-            // Set HTTP-only cookie
+            // Set cookie accessible to client JS (httpOnly: false)
             res.cookie('auth_token', result.token, {
-                httpOnly: true,
+                httpOnly: false,
                 secure: config.nodeEnv === 'production',
                 sameSite: 'lax',
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -57,6 +58,7 @@ export class AuthController {
 
             return ResponseHandler.success(res, {
                 user: result.user,
+                token: result.token,
             }, 'Login successful');
         } catch (error: any) {
             logger.error('Login error:', error);

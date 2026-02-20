@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic'
 
 import type React from "react"
-
 import { signIn } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,19 +25,26 @@ export default function Page() {
     setError(null)
 
     try {
-      const result = await signIn({
-        email,
-        password,
-      })
+      const result = await signIn({ email, password })
 
       if (result.error) {
         throw new Error(result.error)
       }
 
-      if (result.role === "admin" || result.role === "super_admin" || result.role === "super-admin") {
-        router.push("/admin/dashboard") // Ensure it goes to dashboard, not just /admin which redirects
+      // The server action has already set the auth_token cookie.
+      // Refresh to ensure server components pick up the new cookie
+      router.refresh()
+
+      // Now redirect based on role.
+      // Now redirect based on role.
+      console.log("Login successful, role:", result.role);
+
+      if (result.role === "ADMIN" || result.role === "SUPER_ADMIN") {
+        console.log("Redirecting to /admin/dashboard");
+        window.location.href = "/admin/dashboard"
       } else {
-        router.push("/")
+        console.log("Redirecting to /");
+        window.location.href = "/"
       }
     } catch (error: unknown) {
       console.error("Login error:", error)

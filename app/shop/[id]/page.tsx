@@ -1,13 +1,13 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { getUser } from "@/app/auth/actions"
-import { prisma, isDatabaseAvailable } from "@/lib/prisma"
-import { promises as fs } from "fs"
-import path from "path"
 import { notFound, redirect } from "next/navigation"
 import { PriceDisplay } from "@/components/product/price-display"
 import { Badge } from "@/components/ui/badge"
 import { ProductActions } from "@/components/product/product-actions"
+import { serverFetch } from "@/lib/server-api"
+
+export const dynamic = 'force-dynamic'
 
 interface DetailProduct {
   id: string
@@ -22,46 +22,23 @@ interface DetailProduct {
 }
 
 async function getProductById(id: string): Promise<DetailProduct | null> {
-  if (!isDatabaseAvailable) {
-    try {
-      const mockDbPath = path.join(process.cwd(), "app/lib/mock-db/products.json")
-      const data = await fs.readFile(mockDbPath, "utf-8")
-      const products = JSON.parse(data) as any[]
-      const product = products.find((p) => p.id === id)
-      if (!product) return null
+  const response = await serverFetch(`/products/${id}`)
 
-      return {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        images: [product.image],
-        description: product.description,
-        category: product.category,
-        specifications: product.specifications,
-        bulkPricing: product.bulkPricing,
-      }
-    } catch {
-      return null
-    }
+  if (!response.success || !response.data) {
+    return null
   }
 
-  const dbProduct = await prisma.product.findUnique({
-    where: { id },
-  })
-
-  if (!dbProduct) return null
-
+  const p = response.data as any
   return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: Number(dbProduct.singlePriceCents),
-    originalPrice: undefined, // dbProduct.originalPriceCents not in schema
-    images: (dbProduct.images as string[]) ?? [],
-    description: dbProduct.description ?? undefined,
-    category: (dbProduct as any).categoryName ?? undefined,
-    specifications: (dbProduct as any).specifications ?? undefined,
-    bulkPricing: (dbProduct as any).bulkPricing ?? undefined,
+    id: p.id,
+    name: p.name,
+    price: p.singlePriceCents / 100,
+    originalPrice: undefined,
+    images: p.images || [],
+    description: p.description || undefined,
+    category: p.categoryId || undefined,
+    specifications: p.specifications || undefined,
+    bulkPricing: p.bulkPricing || undefined,
   }
 }
 
@@ -169,5 +146,3 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     </div>
   )
 }
-
-

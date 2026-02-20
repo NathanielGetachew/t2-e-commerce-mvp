@@ -29,14 +29,65 @@ class ApiClient {
       ...options,
     }
 
+    // Try to get auth token from cookie and add to Authorization header
+    try {
+      if (typeof document !== 'undefined' && document.cookie) {
+        const cookies = document.cookie.split(';')
+        const authCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='))
+        if (authCookie) {
+          const token = authCookie.split('=')[1]
+          if (token) {
+            (config.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore cookie access errors (e.g., in server environment)
+    }
+
+    // If body is FormData, remove forced Content-Type so browser can set multipart boundary
+    try {
+      // runtime check for FormData (browser)
+      // @ts-ignore
+      if (config.body && typeof FormData !== 'undefined' && config.body instanceof FormData) {
+        const headers = config.headers as Record<string, any>
+        if (headers && headers['Content-Type']) delete headers['Content-Type']
+      }
+    } catch (e) {
+      // ignore (FormData may not be available in some runtimes)
+    }
+
     try {
       const response = await fetch(url, config)
       const data = await response.json()
 
       if (!response.ok) {
-        const errorMessage = data.details 
-          ? data.details.map((d: any) => `${d.field}: ${d.message}`).join(', ')
-          : data.error || `HTTP error! status: ${response.status}`;
+        // Normalize backend error shape to a readable string.
+        // Backend returns { error: { code, message, details? }, message? }
+        let errorMessage = `HTTP error! status: ${response.status}`
+
+        if (data) {
+          if (data.error) {
+            if (typeof data.error === 'string') {
+              errorMessage = data.error
+            } else if (data.error.message) {
+              errorMessage = data.error.message
+            } else if (data.error.details) {
+              try {
+                if (Array.isArray(data.error.details)) {
+                  errorMessage = data.error.details.map((d: any) => d.message || JSON.stringify(d)).join(', ')
+                } else {
+                  errorMessage = JSON.stringify(data.error.details)
+                }
+              } catch (e) {
+                errorMessage = String(data.error.details)
+              }
+            }
+          } else if (data.message) {
+            errorMessage = data.message
+          }
+        }
+
         throw new Error(errorMessage);
       }
 
@@ -69,6 +120,10 @@ class ApiClient {
     return this.request('/auth/logout', {
       method: 'POST',
     })
+  }
+
+  async getCurrentUser() {
+    return this.request('/auth/me')
   }
 
   // Product endpoints
@@ -109,13 +164,43 @@ class ApiClient {
     })
   }
 
-  // Admin endpoints
-  async getAdminAnalytics() {
-    return this.request('/admin/analytics')
+  async uploadImage(fileOrForm: File | FormData) {
+    let body: FormData
+    if (fileOrForm instanceof FormData) {
+      body = fileOrForm
+    } else {
+      body = new FormData()
+      body.append('file', fileOrForm)
+    }
+
+    return this.request('/products/upload-image', {
+      method: 'POST',
+      body,
+      headers: {}, // Let browser set content-type for FormData
+    })
   }
 
-  async getAdminOrders() {
-    return this.request('/admin/orders')
+  // Admin endpoints
+  async getAdminAnalytics(token?: string) {
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    return this.request('/admin/analytics', { headers })
+  }
+
+  async getAdminOrders(token?: string) {
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    return this.request('/admin/orders', { headers })
+  }
+
+  async updateOrderStatus(orderId: string, status: string, token?: string) {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    return this.request(`/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+      headers,
+    })
   }
 
   // Affiliate endpoints

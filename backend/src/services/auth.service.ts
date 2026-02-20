@@ -55,6 +55,7 @@ export class AuthService {
             userId: user.id,
             email: user.email || '',
             role: user.role,
+            name: user.name || '',
         });
 
         logger.info(`New user registered: ${user.email}`);
@@ -96,6 +97,7 @@ export class AuthService {
             userId: user.id,
             email: user.email || '',
             role: user.role,
+            name: user.name || '',
         });
 
         logger.info(`User logged in: ${user.email}`);
@@ -155,7 +157,6 @@ export class AuthService {
                 password: hashedPassword,
                 clerkId: `admin_${Date.now()}_${Math.random().toString(36).substring(7)}`,
                 role: UserRole.ADMIN,
-                // password field needs to be added to schema
             },
         });
 

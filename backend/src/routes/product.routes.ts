@@ -28,6 +28,39 @@ router.get('/', ProductController.getProducts);
 router.get('/search', ProductController.searchProducts);
 
 /**
+ * @route   POST /api/products/proposals
+ * @desc    Create a product proposal
+ * @access  Admin only
+ */
+router.post(
+    '/proposals',
+    authenticate,
+    adminOnly,
+    validate(productProposalSchema),
+    ProductController.createProposal
+);
+
+/**
+ * @route   GET /api/products/proposals
+ * @desc    Get all proposals
+ * @access  Admin only
+ */
+router.get('/proposals', authenticate, adminOnly, ProductController.getProposals);
+
+/**
+ * @route   PATCH /api/products/proposals/:id
+ * @desc    Approve or reject a proposal
+ * @access  Super Admin only
+ */
+router.patch(
+    '/proposals/:id',
+    authenticate,
+    superAdminOnly,
+    validate(proposalActionSchema),
+    ProductController.handleProposal
+);
+
+/**
  * @route   GET /api/products/slug/:slug
  * @desc    Get product by slug
  * @access  Public
@@ -86,26 +119,6 @@ router.post(
     upload.single('file'),
     ProductController.uploadImage
 );
-
-/**
- * @route   POST /api/products/proposals
- * @desc    Create a product proposal
- * @access  Admin only
- */
-router.post(
-    '/proposals',
-    authenticate,
-    adminOnly,
-    validate(productProposalSchema),
-    ProductController.createProposal
-);
-
-/**
- * @route   GET /api/products/proposals
- * @desc    Get all proposals
- * @access  Admin only
- */
-router.get('/proposals', authenticate, adminOnly, ProductController.getProposals);
 
 /**
  * @route   PATCH /api/products/proposals/:id

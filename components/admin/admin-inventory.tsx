@@ -11,8 +11,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Loader2, Edit, Trash2, Check, X, Search, Filter } from "lucide-react"
+import { toast } from "sonner"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-import { getProducts, getProposals, proposeProduct, handleProposal, uploadImage } from "@/app/actions/product-actions"
+import { getProducts, getProposals, proposeProduct, handleProposal, uploadImage, createProduct } from "@/app/actions/product-actions"
 import type { Product, ProductProposal } from "@/app/actions/product-actions"
 import type { User } from "@/app/auth/actions"
 
@@ -27,6 +38,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
     const [isAddProductOpen, setIsAddProductOpen] = useState(false)
     const [isEditProductOpen, setIsEditProductOpen] = useState(false)
     const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+    const [productToDelete, setProductToDelete] = useState<{ id: string, name: string } | null>(null)
     const [imageUploadLoading, setImageUploadLoading] = useState(false)
     const [loading, setLoading] = useState(true)
 
@@ -57,30 +69,36 @@ export function AdminInventory({ user }: AdminInventoryProps) {
         setImageUploadLoading(false)
 
         if (result.success && result.url) {
-            setNewProduct(prev => ({ ...prev, image: result.url }))
+            setNewProduct(prev => ({
+                ...prev,
+                images: [...(prev.images || []), result.url as string]
+            }))
+            toast.success("Image uploaded successfully")
         } else {
-            alert("Image upload failed")
+            toast.error("Image upload failed: " + result.error)
         }
     }
 
-    const handleProposeProduct = async () => {
-        if (!newProduct.name || !newProduct.price) return
+    const handleCreateProduct = async () => {
+        if (!newProduct.name || !newProduct.price || !newProduct.description) return
 
-        await proposeProduct("add", {
-            productData: {
-                ...newProduct,
-                category: newProduct.category || "General",
-                price: Number(newProduct.price),
-                originalPrice: newProduct.originalPrice ? Number(newProduct.originalPrice) : undefined,
-                inStock: newProduct.inStock !== undefined ? newProduct.inStock : true,
-                tags: typeof newProduct.tags === 'string' ? (newProduct.tags as string).split(',').map(t => t.trim()) : newProduct.tags,
-                image: newProduct.image || "/placeholder.svg"
-            } as Product
+        const result = await createProduct({
+            name: newProduct.name,
+            description: newProduct.description,
+            price: Number(newProduct.price),
+            images: newProduct.images || [],
+            category: newProduct.category,
+            stock: newProduct.inStock ? 1 : 0, // Simple stock handling
         })
-        setIsAddProductOpen(false)
-        setNewProduct({})
-        loadData()
-        alert("Product proposal submitted for Super Admin approval.")
+
+        if (result.success) {
+            setIsAddProductOpen(false)
+            setNewProduct({})
+            loadData()
+            toast.success("Product created successfully!")
+        } else {
+            toast.error("Failed to create product: " + result.error)
+        }
     }
 
     const handleEditProductClick = (product: Product) => {
@@ -106,17 +124,22 @@ export function AdminInventory({ user }: AdminInventoryProps) {
         setEditingProduct(null)
         setNewProduct({})
         loadData()
-        alert("Update proposal submitted for Super Admin approval.")
+        toast.success("Update proposal submitted for Super Admin approval.")
     }
 
-    const handleDeleteProduct = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete ${name}? This will create a removal proposal.`)) return
+    const handleDeleteConfirm = async () => {
+        if (!productToDelete) return
 
         await proposeProduct("remove", {
-            targetProductId: id
+            targetProductId: productToDelete.id
         })
+        setProductToDelete(null)
         loadData()
-        alert("Deletion proposal submitted for Super Admin approval.")
+        toast.success("Deletion proposal submitted for Super Admin approval.")
+    }
+
+    const handleDeleteProduct = (id: string, name: string) => {
+        setProductToDelete({ id, name })
     }
 
     const handleApproveProposal = async (id: string) => {
@@ -135,6 +158,22 @@ export function AdminInventory({ user }: AdminInventoryProps) {
 
     return (
         <div className="space-y-6">
+            <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete {productToDelete?.name}? This will create a removal proposal for the super admin to review.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Create Proposal
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Inventory</h2>
@@ -173,14 +212,18 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>Image</Label>
+                                <Label>Images</Label>
                                 <div className="flex items-center gap-2">
                                     <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={imageUploadLoading} />
                                     {imageUploadLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                                 </div>
-                                {newProduct.image && (
-                                    <div className="w-full h-32 relative border rounded overflow-hidden bg-muted/20 flex items-center justify-center">
-                                        <img src={newProduct.image} alt="Preview" className="object-contain h-full" />
+                                {newProduct.images && newProduct.images.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {newProduct.images.map((image, index) => (
+                                            <div key={index} className="w-full h-20 relative border rounded overflow-hidden bg-muted/20 flex items-center justify-center">
+                                                <img src={image || "/placeholder.svg"} alt={`Preview ${index + 1}`} className="object-contain h-full w-full" />
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
@@ -202,7 +245,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsAddProductOpen(false)}>Cancel</Button>
-                            <Button onClick={handleProposeProduct} disabled={imageUploadLoading}>Submit Proposal</Button>
+                            <Button onClick={handleCreateProduct} disabled={imageUploadLoading}>Create Product</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -241,11 +284,19 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                                 <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={imageUploadLoading} />
                                 {imageUploadLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                             </div>
-                            {newProduct.image && (
-                                <div className="w-full h-32 relative border rounded overflow-hidden bg-muted/20 flex items-center justify-center">
-                                    <img src={newProduct.image} alt="Preview" className="object-contain h-full" />
+                            {newProduct.images && newProduct.images.length > 0 ? (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {newProduct.images.map((image, index) => (
+                                        <div key={index} className="w-full h-20 relative border rounded overflow-hidden bg-muted/20 flex items-center justify-center">
+                                            <img src={image || "/placeholder.svg"} alt={`Preview ${index + 1}`} className="object-contain h-full w-full" />
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            ) : newProduct.image ? (
+                                <div className="w-full h-32 relative border rounded overflow-hidden bg-muted/20 flex items-center justify-center">
+                                    <img src={newProduct.image || "/placeholder.svg"} alt="Preview" className="object-contain h-full" />
+                                </div>
+                            ) : null}
                         </div>
 
                         <div className="grid gap-2">
@@ -302,7 +353,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                                             <TableCell className="pl-4 font-medium">
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-10 w-10 rounded-md bg-muted overflow-hidden flex-shrink-0">
-                                                        <img src={product.image} alt="" className="h-full w-full object-cover" />
+                                                        <img src={product.images?.[0] || product.image || "/placeholder.svg"} alt="" className="h-full w-full object-cover" />
                                                     </div>
                                                     <span>{product.name}</span>
                                                 </div>

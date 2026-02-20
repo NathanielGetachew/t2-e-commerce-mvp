@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { getProducts } from '@/app/actions/product-actions'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +37,12 @@ export default async function Page() {
   const isAuthenticated = !!user
   const shopHref = isAuthenticated ? "/shop" : "/auth/login?next=/shop"
 
+  // For now, don't auto-redirect admin users to admin dashboard
+  // They can navigate there manually from the header
+  // if (isAdmin) {
+  //   redirect("/admin/dashboard")
+  // }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header
@@ -47,59 +54,58 @@ export default async function Page() {
       />
 
       <main className="flex-1">
-        {isAuthenticated ? (
-          <Hero isAuthenticated={isAuthenticated} />
-        ) : (
-          <section className="pt-28 pb-10 px-4 border-b bg-gradient-to-b from-muted/20 to-background">
-            <div className="container mx-auto max-w-7xl">
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="space-y-2">
-                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                      Buy retail or bulk—fast.
-                    </h1>
-                    <p className="text-muted-foreground max-w-2xl">
-                      Search products, pick a category, and get to checkout with minimal clicks.
-                    </p>
-                  </div>
+        {/* Always show the full landing page content */}
+        <section className="pt-28 pb-10 px-4 border-b bg-gradient-to-b from-muted/20 to-background">
+          <div className="container mx-auto max-w-7xl">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="space-y-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                    Buy retail or bulk—fast.
+                  </h1>
+                  <p className="text-muted-foreground max-w-2xl">
+                    Search products, pick a category, and get to checkout with minimal clicks.
+                  </p>
+                </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Link href="/auth/login?next=/shop">
-                      <Button size="lg" className="min-w-[180px]">Start Shopping</Button>
-                    </Link>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link href={shopHref}>
+                    <Button size="lg" className="min-w-[180px]">Start Shopping</Button>
+                  </Link>
+                  {!isAuthenticated && (
                     <Link href="/auth/sign-up">
                       <Button size="lg" variant="outline" className="min-w-[180px]">Create Account</Button>
                     </Link>
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <form action="/shop" method="get" className="w-full max-w-md ml-auto flex gap-2">
-                    <Input
-                      name="q"
-                      placeholder="Search products…"
-                      className="h-12 text-base rounded-full shadow-sm"
-                    />
-                    <Button type="submit" size="lg" className="h-12 px-4 rounded-full">
-                      <Search className="h-5 w-5" />
-                      <span className="hidden sm:inline ml-2">Search</span>
-                    </Button>
-                  </form>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat: any) => (
-                    <Link key={cat.id} href={`/shop?category=${cat.slug}`}>
-                      <Button variant="outline" size="sm">
-                        {cat.name}
-                      </Button>
-                    </Link>
-                  ))}
+                  )}
                 </div>
               </div>
+
+              <div className="flex justify-end">
+                <form action="/shop" method="get" className="w-full max-w-md ml-auto flex gap-2">
+                  <Input
+                    name="q"
+                    placeholder="Search products…"
+                    className="h-12 text-base rounded-full shadow-sm"
+                  />
+                  <Button type="submit" size="lg" className="h-12 px-4 rounded-full">
+                    <Search className="h-5 w-5" />
+                    <span className="hidden sm:inline ml-2">Search</span>
+                  </Button>
+                </form>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat: any) => (
+                  <Link key={cat.id} href={`/shop?category=${cat.slug}`}>
+                    <Button variant="outline" size="sm">
+                      {cat.name}
+                    </Button>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
         <section className="py-12 px-4">
           <div className="container mx-auto max-w-7xl">

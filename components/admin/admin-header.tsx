@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Users, Bell, Search, User as UserIcon } from "lucide-react"
+import { Users, Bell, Search, User as UserIcon, LogOut } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type { User } from "@/app/auth/actions"
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { createAdmin } from "@/app/auth/actions"
+import { createAdmin, signOut } from "@/app/auth/actions"
 
 interface AdminHeaderProps {
     user: User | null
@@ -29,6 +29,17 @@ export function AdminHeader({ user }: AdminHeaderProps) {
     const [addAdminLoading, setAddAdminLoading] = useState(false)
     const [addAdminMessage, setAddAdminMessage] = useState<string | null>(null)
     const [isAddAdminOpen, setIsAddAdminOpen] = useState(false)
+
+    const handleSignOut = async () => {
+        setAddAdminLoading(true) // reuse loading state if needed, or just proceed
+        try {
+            await signOut()
+            window.location.href = '/auth/login'
+        } catch (error) {
+            console.error('Sign out error:', error)
+            window.location.href = '/'
+        }
+    }
 
     const handleCreateAdmin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -126,6 +137,15 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                         <div className="text-sm font-medium">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : user?.fullName || 'Admin'}</div>
                         <div className="text-xs text-muted-foreground capitalize">{user?.role?.replace('-', ' ')}</div>
                     </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSignOut}
+                        className="ml-2 text-muted-foreground hover:text-foreground"
+                    >
+                        <LogOut className="h-4 w-4 mr-1" />
+                        <span className="hidden md:inline">Sign Out</span>
+                    </Button>
                 </div>
             </div>
         </header>

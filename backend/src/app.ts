@@ -1,19 +1,16 @@
 import express, { Application, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import config from './config/env';
 import { logger } from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { ResponseHandler } from './utils/responses';
-
-// Import routes (will be created next)
-// import authRoutes from './routes/auth.routes';
-// import adminRoutes from './routes/admin.routes';
-// import productsRoutes from './routes/products.routes';
-// import affiliatesRoutes from './routes/affiliates.routes';
-// import couponsRoutes from './routes/coupons.routes';
+import { requestId } from './middleware/requestId';
+import { sanitizeInput } from './middleware/sanitize';
+import { prisma } from './config/database';
 
 class App {
     public app: Application;
@@ -26,8 +23,14 @@ class App {
     }
 
     private initializeMiddlewares(): void {
-        // Security
+        // Request ID tracking (must be first)
+        this.app.use(requestId);
+
+        // Security headers
         this.app.use(helmet());
+
+        // Response compression (gzip/brotli)
+        this.app.use(compression());
 
         // CORS
         this.app.use(
@@ -35,7 +38,7 @@ class App {
                 origin: config.cors.origin,
                 credentials: true,
                 methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-                allowedHeaders: ['Content-Type', 'Authorization'],
+                allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
             })
         );
 
@@ -46,19 +49,45 @@ class App {
         // Cookie parser
         this.app.use(cookieParser());
 
-        // Rate limiting
-        const limiter = rateLimit({
+        // XSS sanitization (after body parsing, before routes)
+        this.app.use(sanitizeInput);
+
+        // Global rate limiting
+        const globalLimiter = rateLimit({
             windowMs: config.rateLimit.windowMs,
             max: config.rateLimit.maxRequests,
-            message: 'Too many requests from this IP, please try again later.',
+            message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests from this IP, please try again later.' } },
             standardHeaders: true,
             legacyHeaders: false,
         });
-        this.app.use('/api/', limiter);
+        this.app.use('/api/', globalLimiter);
 
-        // Request logging
+        // Stricter rate limiting for auth endpoints (prevent brute force)
+        const authLimiter = rateLimit({
+            windowMs: 15 * 60 * 1000, // 15 minutes
+            max: 20, // 20 attempts per 15 min
+            message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many authentication attempts, please try again later.' } },
+            standardHeaders: true,
+            legacyHeaders: false,
+        });
+        this.app.use('/api/auth/login', authLimiter);
+        this.app.use('/api/auth/signup', authLimiter);
+
+        // Stricter rate limiting for webhook endpoints
+        const webhookLimiter = rateLimit({
+            windowMs: 60 * 1000, // 1 minute
+            max: 30, // 30 per minute
+            message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many webhook requests.' } },
+            standardHeaders: true,
+            legacyHeaders: false,
+        });
+        this.app.use('/api/webhooks', webhookLimiter);
+
+        // Request logging with request ID
         this.app.use((req, _res, next) => {
+            const rid = (req as any).requestId;
             logger.info(`${req.method} ${req.path}`, {
+                requestId: rid,
                 ip: req.ip,
                 userAgent: req.get('user-agent'),
             });
@@ -67,17 +96,37 @@ class App {
     }
 
     private initializeRoutes(): void {
-        // Health check endpoint
-        this.app.get('/health', (_req, res: Response) => {
+        // Health check with database probe
+        this.app.get('/health', async (_req, res: Response) => {
+            let dbStatus = 'connected';
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+            } catch {
+                dbStatus = 'disconnected';
+            }
+
+            const status = dbStatus === 'connected' ? 'healthy' : 'degraded';
+
             return ResponseHandler.success(res, {
-                status: 'healthy',
+                status,
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
                 environment: config.nodeEnv,
+                database: dbStatus,
+                version: '1.0.0',
             });
         });
 
-        // API routes
+        // API v1 routes
+        this.app.use('/api/v1/auth', require('./routes/auth.routes').default);
+        this.app.use('/api/v1/products', require('./routes/product.routes').default);
+        this.app.use('/api/v1/admin', require('./routes/admin.routes').default);
+        this.app.use('/api/v1/affiliates', require('./routes/affiliate.routes').default);
+        this.app.use('/api/v1/coupons', require('./routes/coupon.routes').default);
+        this.app.use('/api/v1/settings', require('./routes/settings.routes').default);
+        this.app.use('/api/v1/webhooks', require('./routes/webhook.routes').default);
+
+        // Backward-compatible routes (same as v1)
         this.app.use('/api/auth', require('./routes/auth.routes').default);
         this.app.use('/api/products', require('./routes/product.routes').default);
         this.app.use('/api/admin', require('./routes/admin.routes').default);
@@ -95,7 +144,15 @@ class App {
                 name: 'T2 E-commerce Backend API',
                 version: '1.0.0',
                 status: 'running',
-                documentation: '/api-docs',
+                endpoints: {
+                    health: '/health',
+                    auth: '/api/v1/auth',
+                    products: '/api/v1/products',
+                    admin: '/api/v1/admin',
+                    affiliates: '/api/v1/affiliates',
+                    coupons: '/api/v1/coupons',
+                    settings: '/api/v1/settings',
+                },
             });
         });
     }

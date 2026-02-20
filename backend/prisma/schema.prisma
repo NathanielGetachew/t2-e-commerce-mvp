@@ -60,6 +60,9 @@ model User {
 
   updatedShipments       Shipment[]
   changedShipmentStatuses ShipmentStatusHistory[]
+
+  proposedProposals      ProductProposal[] @relation("ProposedBy")
+  reviewedProposals      ProductProposal[] @relation("ReviewedBy")
 }
 
 model Category {
@@ -95,6 +98,8 @@ model Product {
 
   bulkTiers BulkTier[]
   orderItems OrderItem[]
+  
+  proposals ProductProposal[]
 
   @@index([isActive])
   @@index([categoryId])
@@ -271,4 +276,42 @@ model SystemSettings {
   updatedBy String?
 
   @@index([key])
+}
+
+enum ProposalType {
+  ADD
+  UPDATE
+  REMOVE
+}
+
+enum ProposalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ProductProposal {
+  id              String         @id @default(cuid())
+  type            ProposalType
+  status          ProposalStatus @default(PENDING)
+  
+  // JSON data for the proposed product changes
+  productData     Json?
+  
+  // Target product for update/remove
+  targetProductId String?
+  targetProduct   Product?       @relation(fields: [targetProductId], references: [id], onDelete: SetNull)
+
+  // User who made the proposal
+  proposedByUserId String
+  proposedByUser   User          @relation("ProposedBy", fields: [proposedByUserId], references: [id], onDelete: Cascade)
+  proposedAt       DateTime      @default(now())
+
+  // Admin who reviewed it
+  reviewedByUserId String?
+  reviewedByUser   User?         @relation("ReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  reviewedAt       DateTime?
+
+  @@index([status])
+  @@index([proposedByUserId])
 }

@@ -1,92 +1,113 @@
 "use server"
 
-import { promises as fs } from "fs"
-import path from "path"
-import { v4 as uuidv4 } from "uuid"
+import { serverFetch } from "@/lib/server-api"
 import { getUser } from "@/app/auth/actions"
-
-const DB_PATH = path.join(process.cwd(), "app/lib/mock-db")
-const COUPONS_FILE = path.join(DB_PATH, "coupons.json")
 
 export interface Coupon {
     id: string
     code: string
-    discountPercentage: number // 0-100
-    targetProductId?: string // If null, applies to whole cart (optional future feature)
+    discountPercentage: number
+    targetProductId?: string
     validUntil: string
+    maxUses?: number
+    currentUses?: number
+    minOrderAmountCents?: number
     createdBy: string
+    createdAt?: string
 }
 
-async function readJSON(filePath: string) {
-    try {
-        const data = await fs.readFile(filePath, "utf-8")
-        return JSON.parse(data)
-    } catch (error) {
-        return []
-    }
-}
-
-async function writeJSON(filePath: string, data: any) {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2))
-}
-
+/**
+ * Get all coupons (Admin only)
+ */
 export async function getCoupons(): Promise<Coupon[]> {
     const user = await getUser()
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
         return []
     }
-    return await readJSON(COUPONS_FILE)
+
+    const response = await serverFetch('/coupons')
+
+    if (!response.success) {
+        console.error('[getCoupons] Failed:', response.error)
+        return []
+    }
+
+    return response.data?.coupons || response.data || []
 }
 
+/**
+ * Create a coupon (Super Admin only)
+ */
 export async function createCoupon(data: {
     code: string
     discountPercentage: number
-    targetProductId: string
+    targetProductId?: string
     validHours: number
+    maxUses?: number
+    minOrderAmountCents?: number
 }) {
     const user = await getUser()
     if (!user || user.role !== "SUPER_ADMIN") {
         return { error: "Only Super Admin can create coupons" }
     }
 
-    const coupons = await readJSON(COUPONS_FILE)
+    const response = await serverFetch('/coupons', {
+        method: 'POST',
+        body: JSON.stringify({
+            code: data.code.toUpperCase(),
+            discountPercentage: data.discountPercentage,
+            targetProductId: data.targetProductId || undefined,
+            validHours: data.validHours,
+            maxUses: data.maxUses,
+            minOrderAmountCents: data.minOrderAmountCents,
+        }),
+    })
 
-    if (coupons.some((c: Coupon) => c.code === data.code)) {
-        return { error: "Coupon code already exists" }
+    if (!response.success) {
+        return { error: response.error || 'Failed to create coupon' }
     }
 
-    const validUntil = new Date()
-    validUntil.setHours(validUntil.getHours() + data.validHours)
-
-    const newCoupon: Coupon = {
-        id: uuidv4(),
-        code: data.code.toUpperCase(),
-        discountPercentage: data.discountPercentage,
-        targetProductId: data.targetProductId,
-        validUntil: validUntil.toISOString(),
-        createdBy: user.email,
-    }
-
-    coupons.push(newCoupon)
-    await writeJSON(COUPONS_FILE, coupons)
-    return { success: true, coupon: newCoupon }
+    return { success: true, coupon: response.data }
 }
 
-export async function validateCoupon(code: string, productId: string) {
-    const coupons = await readJSON(COUPONS_FILE)
-    const coupon = coupons.find((c: Coupon) => c.code === code.toUpperCase())
+/**
+ * Validate a coupon code (Public)
+ */
+export async function validateCoupon(code: string, productId?: string) {
+    const response = await serverFetch('/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({
+            code: code.toUpperCase(),
+            productId,
+        }),
+    })
 
-    if (!coupon) {
-        return { error: "Invalid coupon code" }
+    if (!response.success) {
+        return { error: response.error || 'Invalid coupon code' }
     }
 
-    if (new Date(coupon.validUntil) < new Date()) {
-        return { error: "Coupon has expired" }
+    return {
+        success: true,
+        discountPercentage: response.data?.discountPercentage,
+    }
+}
+
+/**
+ * Delete a coupon (Super Admin only)
+ */
+export async function deleteCoupon(couponId: string) {
+    const user = await getUser()
+    if (!user || user.role !== "SUPER_ADMIN") {
+        return { error: "Only Super Admin can delete coupons" }
     }
 
-    if (coupon.targetProductId && coupon.targetProductId !== productId) {
-        return { error: "This coupon is not valid for this product" }
+    const response = await serverFetch(`/coupons/${couponId}`, {
+        method: 'DELETE',
+    })
+
+    if (!response.success) {
+        return { error: response.error || 'Failed to delete coupon' }
     }
 
-    return { success: true, discountPercentage: coupon.discountPercentage }
+    return { success: true }
 }

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Search, Package, Warehouse, Ship, Landmark, MapPin } from "lucide-react"
-import { DashboardOrder, DashboardOrderStatus as OrderStatus } from "./admin-dashboard"
+import { DashboardOrder, DashboardOrderStatus as OrderStatus } from "../types/admin"
 import { cn } from "@/lib/utils"
 
 // Extend for tracking view if needed

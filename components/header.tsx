@@ -32,9 +32,9 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
 
   const navItems = [
     { href: "/", label: "Home", visible: true },
-    { href: "/shop", label: "Shop", visible: true },
-    { href: "/track", label: "Track Order", visible: true },
-    { href: "/admin", label: "Admin", visible: isAdmin },
+    { href: "/shop", label: "Shop", visible: !isAdmin },
+    { href: "/track", label: "Track Order", visible: !isAdmin },
+    { href: "/admin/dashboard", label: "Admin", visible: isAdmin },
   ].filter((item) => item.visible)
 
   const isHome = pathname === "/"
@@ -86,12 +86,11 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
 
           <div className="flex items-center gap-2">
             {user ? (
-              <MockUserNav
+              <UserNav
                 user={user}
                 isAdmin={isAdmin}
                 cartCount={cartCount}
                 onCartClick={onCartClick}
-                signOutCallback={() => setMobileMenuOpen(false)}
               />
             ) : (
               <>
@@ -144,7 +143,13 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
                   </Button>
                 </Link>
               ))}
-              {user && <MockMobileUserNav user={user} onSignOut={() => setMobileMenuOpen(false)} />}
+              {user && (
+                <MobileUserNav
+                  user={user}
+                  isAdmin={isAdmin}
+                  onMenuClose={() => setMobileMenuOpen(false)}
+                />
+              )}
             </div>
           </nav>
         )}
@@ -153,56 +158,22 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
   )
 }
 
-function MockUserNav({ user, isAdmin, cartCount, onCartClick, signOutCallback }: {
-  user: User,
-  isAdmin: boolean,
-  cartCount: number,
-  onCartClick?: () => void,
-  signOutCallback?: () => void
-}) {
-  const router = useRouter()
+/**
+ * Sign out helper — calls Server Action
+ */
+import { signOut } from "@/app/auth/actions"
 
-  const handleSignOut = async () => {
-    // Call server action to clear cookie
-    await fetch('/api/auth/signout', { method: 'POST' }).catch(() => { })
-    // Also clear via client side js-cookie if needed, but simple refresh/redirect should work if server action clears it.
-    // But we can't call server action from here easily without importing. 
-    // For now, let's just assume we redirect to a logout route or just refresh.
-    // Actually, we can use the signOut action we created if it's imported? 
-    // actions are server actions, so yes.
-    // But let's keep it simple: redirect to homepage and refresh.
-    // For a proper fix, we should import signOut from actions.
-
-    // Since we can't easily import server action here without 'use server' context or passing it down
-    // Let's try to just redirect to homepage.
-    // Wait, we need to clear the cookie.
-    // Let's implement a quick client-side cookie clear for 'mock-session'
-    document.cookie = "mock-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-
-    if (signOutCallback) signOutCallback()
-    router.push("/")
-    router.refresh()
-  }
-
-  return (
-    <UserNavContent
-      user={user}
-      isAdmin={isAdmin}
-      cartCount={cartCount}
-      onCartClick={onCartClick}
-      onSignOut={handleSignOut}
-    />
-  )
+async function performSignOut() {
+  await signOut()
+  window.location.href = '/auth/login'
 }
 
-function UserNavContent({ user, isAdmin, cartCount, onCartClick, onSignOut }: {
+function UserNav({ user, isAdmin, cartCount, onCartClick }: {
   user: User,
   isAdmin: boolean,
   cartCount: number,
   onCartClick?: () => void,
-  onSignOut: () => void
 }) {
-  const router = useRouter()
   return (
     <>
       {!isAdmin && (
@@ -231,70 +202,53 @@ function UserNavContent({ user, isAdmin, cartCount, onCartClick, onSignOut }: {
         )}
       </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => router.push("/dashboard/ambassador")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
-        title="Be an Ambassador"
-      >
-        <Users className="h-4 w-4" />
-        <span>Be an Ambassador</span>
-      </Button>
+      {!isAdmin && (
+        <Link href="/dashboard/ambassador">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
+            title="Be an Ambassador"
+          >
+            <Users className="h-4 w-4" />
+            <span>Be an Ambassador</span>
+          </Button>
+        </Link>
+      )}
 
-      <Button variant="ghost" size="icon" onClick={onSignOut} title="Sign Out">
+      <Button variant="ghost" size="icon" onClick={performSignOut} title="Sign Out">
         <LogOut className="h-5 w-5" />
       </Button>
     </>
   )
 }
 
-function MobileUserNavContent({ user, onSignOut, onMenuClose }: { user: User, onSignOut: () => void, onMenuClose: () => void }) {
-  const router = useRouter()
-
+function MobileUserNav({ user, isAdmin, onMenuClose }: {
+  user: User,
+  isAdmin: boolean,
+  onMenuClose: () => void,
+}) {
   return (
     <>
+      {!isAdmin && (
+        <Link href="/dashboard/ambassador" onClick={onMenuClose}>
+          <Button variant="ghost" className="justify-start w-full">
+            <Users className="mr-2 h-4 w-4" />
+            Be an Ambassador
+          </Button>
+        </Link>
+      )}
       <Button
         variant="ghost"
         onClick={() => {
-          router.push("/dashboard/ambassador")
           onMenuClose()
+          performSignOut()
         }}
-        className="justify-start"
+        className="justify-start text-red-600 w-full"
       >
-        <Users className="mr-2 h-4 w-4" />
-        Be an Ambassador
-      </Button>
-      <Button variant="ghost" onClick={onSignOut} className="justify-start text-red-600">
         <LogOut className="mr-2 h-4 w-4" />
         {"Sign Out"}
       </Button>
     </>
   )
-}
-
-function ClerkMobileUserNav({ user, onSignOut }: { user: User, onSignOut: () => void }) {
-  const { signOut } = useClerk()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    onSignOut()
-    router.push("/")
-  }
-
-  return <MobileUserNavContent user={user} onSignOut={handleSignOut} onMenuClose={onSignOut} />
-}
-
-function MockMobileUserNav({ user, onSignOut }: { user: User, onSignOut: () => void }) {
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    document.cookie = "mock-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-    onSignOut()
-    router.push("/")
-    router.refresh()
-  }
-
-  return <MobileUserNavContent user={user} onSignOut={handleSignOut} onMenuClose={onSignOut} />
 }

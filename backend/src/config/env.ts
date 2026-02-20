@@ -37,7 +37,7 @@ const config: Config = {
     },
     rateLimit: {
         windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-        maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+        maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000', 10),
     },
     upload: {
         maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10),

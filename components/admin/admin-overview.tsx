@@ -1,8 +1,10 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { DollarSign, Package, Users, TrendingUp, ShoppingBag, Eye, MousePointerClick } from "lucide-react"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Pie, PieChart, Cell, Bar, BarChart, ResponsiveContainer } from "recharts"
-import { DashboardOrder as Order, DashboardOrderStatus as OrderStatus } from "../admin-dashboard"
+import { DashboardOrder as Order, DashboardOrderStatus as OrderStatus } from "../../types/admin"
 import type { User } from "@/app/auth/actions"
 import { Button } from "@/components/ui/button"
 

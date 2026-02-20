@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import mockShipments from "@/app/lib/mock-db/shipments.json"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, Truck, ArrowRight, CheckCircle, Clock, MoreVertical } from "lucide-react"
-import { updateShipmentStatus } from "@/app/admin/actions"
+import { getAdminShipments, updateShipmentStatus } from "@/app/admin/actions"
 import { toast } from "sonner"
 import {
     DropdownMenu,
@@ -38,12 +38,58 @@ const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
 }
 
 export function AdminSupplyChain() {
-    const [shipments, setShipments] = useState<Shipment[]>(mockShipments)
+    const [shipments, setShipments] = useState<Shipment[]>([])
     const [isUpdating, setIsUpdating] = useState<string | null>(null)
+
+    // Map DB status to UI String
+    const mapStatusToUI = (dbStatus: string) => {
+        switch (dbStatus) {
+            case "IN_PRODUCTION": return "In Production"
+            case "SHIPPED_FROM_CHINA": return "In Transit"
+            case "IN_CUSTOMS": return "Customs Clearance"
+            case "RECEIVED_AT_WAREHOUSE": return "Received"
+            default: return "In Production"
+        }
+    }
+
+    // Map UI String to DB status
+    const mapStatusToDB = (uiStatus: string) => {
+        switch (uiStatus) {
+            case "In Production": return "IN_PRODUCTION"
+            case "In Transit": return "SHIPPED_FROM_CHINA"
+            case "Customs Clearance": return "IN_CUSTOMS"
+            case "Received": return "RECEIVED_AT_WAREHOUSE"
+            default: return "IN_PRODUCTION"
+        }
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadShipments = async () => {
+        const res = await getAdminShipments();
+        if (res?.shipments && res.shipments.length > 0) {
+            const mapped: Shipment[] = res.shipments.map((s: any) => ({
+                id: s.id,
+                trackingNumber: s.containerId,
+                supplier: s.notes || "Supplier",
+                status: mapStatusToUI(s.status),
+                origin: "Guangzhou, China",
+                destination: "Addis Ababa, Ethiopia",
+                expectedArrival: s.receivedAtWarehouseAt || new Date().toISOString(),
+                items: [{ productName: "Goods", quantity: 1 }]
+            }));
+            setShipments(mapped);
+        } else {
+            // Fallback to mock logic if db is completely wiped, solely for visual purposes so the page doesn't look empty
+            setShipments(mockShipments)
+        }
+    }
+
+    useEffect(() => { loadShipments() }, [])
 
     const handleStatusUpdate = async (shipmentId: string, newStatus: string) => {
         setIsUpdating(shipmentId)
-        const result = await updateShipmentStatus(shipmentId, newStatus)
+        const dbStatus = mapStatusToDB(newStatus);
+        const result = await updateShipmentStatus(shipmentId, dbStatus)
         if (result.success) {
             setShipments(prev => prev.map(s => s.id === shipmentId ? { ...s, status: newStatus } : s))
             toast.success("Shipment status updated")

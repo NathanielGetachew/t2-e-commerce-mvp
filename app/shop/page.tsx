@@ -1,96 +1,26 @@
 import { Suspense } from 'react'
 import { ShopPageClient } from '@/components/shop/shop-page-client'
 import { getUser } from '@/app/auth/actions'
-import { prisma, isDatabaseAvailable } from '@/lib/prisma'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { getProducts } from '@/app/actions/product-actions'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-async function getProducts(searchParams: { q?: string; category?: string }) {
-    if (!isDatabaseAvailable) {
-        try {
-            const mockDbPath = path.join(process.cwd(), 'app/lib/mock-db/products.json')
-            const data = await fs.readFile(mockDbPath, 'utf-8')
-            let products = JSON.parse(data)
-
-            const { q, category } = searchParams
-            if (q) {
-                const search = q.toLowerCase()
-                products = products.filter((p: any) =>
-                    p.name.toLowerCase().includes(search) ||
-                    p.description.toLowerCase().includes(search)
-                )
-            }
-
-            if (category && category !== 'all') {
-                products = products.filter((p: any) =>
-                    p.category.toLowerCase() === category.toLowerCase()
-                )
-            }
-
-            return products.map((p: any) => ({
-                id: p.id,
-                name: p.name,
-                price: p.price,
-                images: [p.image],
-                category: p.category
-            }))
-        } catch (e) {
-            console.error("Failed to load mock products", e)
-            return []
-        }
-    }
-
-    const { q, category } = searchParams
-    const where: any = { isActive: true }
-
-    if (q) {
-        where.OR = [
-            { name: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } }
-        ]
-    }
-
-    if (category && category !== 'all') {
-        where.category = {
-            slug: category
-        }
-    }
-
-    const products = await prisma.product.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: { category: true }
-    })
-
-    return products.map(p => ({
-        id: p.id,
-        name: p.name,
-        price: p.singlePriceCents,
-        images: p.images as string[],
-        category: p.category?.name || 'Uncategorized'
-    }))
-}
-
 async function getCategories() {
-    if (!isDatabaseAvailable) {
-        return [
-            { id: '1', name: 'Machinery', slug: 'machinery' },
-            { id: '2', name: 'Electronics', slug: 'electronics' },
-            { id: '3', name: 'Energy', slug: 'energy' },
-            { id: '4', name: 'Kitchen Equipment', slug: 'kitchen-equipment' }
-        ]
-    }
-    return prisma.category.findMany()
+    // TODO: Wire to backend /api/categories when endpoint exists
+    return [
+        { id: '1', name: 'Machinery', slug: 'machinery' },
+        { id: '2', name: 'Electronics', slug: 'electronics' },
+        { id: '3', name: 'Energy', slug: 'energy' },
+        { id: '4', name: 'Kitchen Equipment', slug: 'kitchen-equipment' }
+    ]
 }
 
 export default async function ShopPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }) {
     const params = await searchParams
     const user = await getUser()
 
-    // Require authentication before accessing the shop (preserve search/category in next)
+    // Require authentication before accessing the shop
     if (!user) {
         const qs = new URLSearchParams()
         if (params.q) qs.set('q', params.q)
@@ -99,23 +29,39 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         redirect(`/auth/login?next=${encodeURIComponent(next)}`)
     }
 
-    // Admins are back-office only; redirect them to the admin dashboard
+    // Admins go to admin dashboard
     const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'
     if (isAdmin) {
         redirect('/admin')
     }
 
-    const products = await getProducts(params)
+    // Get products from backend API
+    let allProducts = await getProducts()
+
+    // Client-side filtering for search and category
+    if (params.q) {
+        const search = params.q.toLowerCase()
+        allProducts = allProducts.filter(p =>
+            p.name.toLowerCase().includes(search) ||
+            (p.description && p.description.toLowerCase().includes(search))
+        )
+    }
+
+    if (params.category && params.category !== 'all') {
+        allProducts = allProducts.filter(p =>
+            p.category?.toLowerCase() === params.category!.toLowerCase()
+        )
+    }
+
     const categories = await getCategories()
 
     return (
         <ShopPageClient
             user={user}
             isAdmin={isAdmin}
-            products={products as any}
+            products={allProducts as any}
             categories={categories as any}
             params={params}
         />
     )
 }
-

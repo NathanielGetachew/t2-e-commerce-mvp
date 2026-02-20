@@ -1,193 +1,164 @@
 "use server"
 
-import { cookies } from "next/headers"
-import fs from "fs/promises"
-import path from "path"
+import { serverFetch } from "@/lib/server-api"
+import { getUser } from "@/app/auth/actions"
 import type { User } from "@/app/auth/actions"
 
-const DB_PATH = path.join(process.cwd(), "app/auth/mock-db.json")
-
-// Helper to read DB (duplicated from auth/actions for safety/speed in this MVP)
-async function getDB(): Promise<User[]> {
-    try {
-        await fs.access(DB_PATH)
-        const data = await fs.readFile(DB_PATH, "utf-8")
-        return JSON.parse(data)
-    } catch {
-        return []
-    }
-}
-
-async function writeDB(users: User[]) {
-    await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2))
-}
-
+/**
+ * Validate a referral code
+ */
 export async function validateReferralCode(code: string) {
-    const users = await getDB()
-    // Only valid if ambassador is approved
-    const ambassador = users.find(u =>
-        (u.referralCode === code || u.customCode === code) &&
-        u.isAmbassador &&
-        u.ambassadorStatus === "approved"
-    )
+    const response = await serverFetch('/affiliate/validate-code', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+    })
 
-    if (ambassador) {
-        return {
-            valid: true,
-            discountPercentage: 5, // Default discount
-            ambassadorName: ambassador.fullName
-        }
+    if (!response.success) {
+        return { valid: false }
     }
 
-    return { valid: false }
+    return {
+        valid: true,
+        discountPercentage: response.data?.discountPercentage || 5,
+        ambassadorName: response.data?.ambassadorName,
+    }
 }
 
-export async function submitApplication(formData: any) {
-    const users = await getDB()
-    const userIndex = users.findIndex(u => u.id === formData.userId)
+/**
+ * Submit ambassador application
+ */
+export async function submitApplication(formData: {
+    userId: string
+    socialLinks: { platform: string; url: string }[]
+    whyJoin: string
+    marketingStrategy: string
+}) {
+    const response = await serverFetch('/affiliate/apply', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+    })
 
-    if (userIndex === -1) {
-        return { success: false, error: "User not found" }
+    if (!response.success) {
+        return { success: false, error: response.error || 'Application failed' }
     }
 
-    users[userIndex].ambassadorStatus = "pending"
-    users[userIndex].applicationData = {
-        socialLinks: formData.socialLinks,
-        whyJoin: formData.whyJoin,
-        marketingStrategy: formData.marketingStrategy
-    }
-
-    await writeDB(users)
     return { success: true }
 }
 
+/**
+ * Approve an ambassador (Admin only)
+ */
 export async function approveAmbassador(userId: string) {
-    const users = await getDB()
-    const userIndex = users.findIndex(u => u.id === userId)
+    const response = await serverFetch(`/affiliate/applications/${userId}/approve`, {
+        method: 'POST',
+    })
 
-    if (userIndex === -1) return { success: false, error: "User not found" }
-
-    // Generate code if not exists
-    const code = users[userIndex].customCode || `AMB-${users[userIndex].fullName.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 1000)}`
-
-    users[userIndex].ambassadorStatus = "approved"
-    users[userIndex].isAmbassador = true
-    users[userIndex].referralCode = code
-    users[userIndex].commissionRate = 5
-    if (!users[userIndex].metrics) {
-        users[userIndex].metrics = { clicks: 0, conversions: 0, revenueGenerated: 0 }
+    if (!response.success) {
+        return { success: false, error: response.error || 'Failed to approve' }
     }
 
-    await writeDB(users)
     return { success: true }
 }
 
+/**
+ * Reject an ambassador (Admin only)
+ */
 export async function rejectAmbassador(userId: string) {
-    const users = await getDB()
-    const userIndex = users.findIndex(u => u.id === userId)
+    const response = await serverFetch(`/affiliate/applications/${userId}/reject`, {
+        method: 'POST',
+    })
 
-    if (userIndex === -1) return { success: false, error: "User not found" }
+    if (!response.success) {
+        return { success: false, error: response.error || 'Failed to reject' }
+    }
 
-    users[userIndex].ambassadorStatus = "rejected"
-    await writeDB(users)
     return { success: true }
 }
 
+/**
+ * Update custom referral code
+ */
 export async function updateCustomCode(userId: string, newCode: string) {
-    const users = await getDB()
+    const response = await serverFetch('/affiliate/custom-code', {
+        method: 'PUT',
+        body: JSON.stringify({ code: newCode }),
+    })
 
-    // Check uniqueness
-    const exists = users.find(u => u.referralCode === newCode || u.customCode === newCode)
-    if (exists) {
-        return { success: false, error: "Code already taken" }
+    if (!response.success) {
+        return { success: false, error: response.error || 'Code update failed' }
     }
 
-    const userIndex = users.findIndex(u => u.id === userId)
-    if (userIndex === -1) return { success: false, error: "User not found" }
-
-    users[userIndex].referralCode = newCode
-    users[userIndex].customCode = newCode
-
-    await writeDB(users)
     return { success: true }
 }
 
+/**
+ * Track a referral click
+ */
 export async function trackReferralClick(code: string) {
-    const users = await getDB()
-    const ambassadorIndex = users.findIndex(u => (u.referralCode === code || u.customCode === code) && u.ambassadorStatus === "approved")
+    const response = await serverFetch('/affiliate/track-click', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+    })
 
-    if (ambassadorIndex === -1) return { success: false }
-
-    const ambassador = users[ambassadorIndex]
-    if (!ambassador.metrics) {
-        ambassador.metrics = { clicks: 0, conversions: 0, revenueGenerated: 0 }
-    }
-
-    ambassador.metrics.clicks += 1
-
-    users[ambassadorIndex] = ambassador
-    await writeDB(users)
-
-    return { success: true }
+    return { success: response.success }
 }
 
+/**
+ * Record a commission from a purchase
+ */
 export async function recordCommission(referralCode: string, orderAmount: number) {
-    const users = await getDB()
-    const ambassadorIndex = users.findIndex(u => (u.referralCode === referralCode || u.customCode === referralCode) && u.isAmbassador)
+    const response = await serverFetch('/affiliate/commission', {
+        method: 'POST',
+        body: JSON.stringify({ referralCode, orderAmount }),
+    })
 
-    if (ambassadorIndex === -1) {
-        return { success: false, error: "Ambassador not found" }
+    if (!response.success) {
+        return { success: false, error: response.error || 'Failed to record commission' }
     }
-
-    const ambassador = users[ambassadorIndex]
-    const commissionRate = ambassador.commissionRate || 5
-    const commissionEarned = (orderAmount * commissionRate) / 100
-
-    // Update earnings
-    ambassador.totalEarnings = (ambassador.totalEarnings || 0) + commissionEarned
-
-    // Update metrics
-    if (!ambassador.metrics) {
-        ambassador.metrics = { clicks: 0, conversions: 0, revenueGenerated: 0 }
-    }
-    ambassador.metrics.conversions += 1
-    ambassador.metrics.revenueGenerated += orderAmount
-
-    users[ambassadorIndex] = ambassador
-    await writeDB(users)
 
     return {
         success: true,
-        earned: commissionEarned
+        earned: response.data?.earned || 0,
     }
 }
 
+/**
+ * Get referral stats for current user
+ */
 export async function getReferralStats(userId: string) {
-    const users = await getDB()
-    const user = users.find(u => u.id === userId)
+    const response = await serverFetch('/affiliate/stats')
 
-    if (!user || !user.isAmbassador) {
+    if (!response.success) {
         return null
     }
 
-    return {
-        referralCode: user.customCode || user.referralCode,
-        commissionRate: user.commissionRate,
-        totalEarnings: user.totalEarnings,
-        metrics: user.metrics || { clicks: 0, conversions: 0, revenueGenerated: 0 },
-        monthlyEarnings: [
-            { month: 'Jan', amount: 0 },
-            { month: 'Feb', amount: user.totalEarnings || 0 }
-        ]
-    }
+    return response.data
 }
 
+/**
+ * Get pending ambassador applications (Admin only)
+ */
 export async function getAmbassadorApplications() {
-    const users = await getDB()
-    return users.filter(u => u.ambassadorStatus === "pending")
+    const response = await serverFetch('/affiliate/applications')
+
+    if (!response.success) {
+        console.error('[getAmbassadorApplications] Failed:', response.error)
+        return []
+    }
+
+    return response.data?.applications || response.data || []
 }
 
+/**
+ * Get all approved ambassadors (Admin only)
+ */
 export async function getAllAmbassadors() {
-    const users = await getDB()
-    return users.filter(u => u.isAmbassador && u.ambassadorStatus === "approved")
+    const response = await serverFetch('/affiliate/ambassadors')
+
+    if (!response.success) {
+        console.error('[getAllAmbassadors] Failed:', response.error)
+        return []
+    }
+
+    return response.data?.ambassadors || response.data || []
 }
