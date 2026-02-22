@@ -7,6 +7,8 @@ export const ambassadorApplicationSchema = z.object({
         facebook: z.string().url().optional(),
         tiktok: z.string().url().optional(),
         twitter: z.string().url().optional(),
+        youtube: z.string().url().optional(),
+        blog: z.string().url().optional(),
     }).optional(),
     whyJoin: z.string().min(50, 'Please provide at least 50 characters explaining why you want to join'),
     marketingStrategy: z.string().min(50, 'Please provide at least 50 characters about your marketing strategy'),

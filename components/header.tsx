@@ -8,19 +8,31 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import type { User } from "@/app/auth/actions"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/components/providers/cart-provider"
 
 interface HeaderProps {
-  cartCount?: number
+  cartCount?: number // Keeping for backwards compatibility, but will use context primarily
   onCartClick?: () => void
   user: User | null
   isAdmin: boolean
 }
 
-export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProps) {
+export function Header({ cartCount: propCartCount, onCartClick, user, isAdmin }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+
+  // Conditionally use cart context if we're inside a provider
+  let contextCartCount = 0;
+  try {
+    const cart = useCart();
+    contextCartCount = cart.totalItems;
+  } catch (e) {
+    // Ignore error if used outside CartProvider (e.g., admin pages without provider)
+  }
+
+  const displayCartCount = contextCartCount > 0 ? contextCartCount : propCartCount || 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,7 +101,7 @@ export function Header({ cartCount = 0, onCartClick, user, isAdmin }: HeaderProp
               <UserNav
                 user={user}
                 isAdmin={isAdmin}
-                cartCount={cartCount}
+                cartCount={displayCartCount}
                 onCartClick={onCartClick}
               />
             ) : (

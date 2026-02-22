@@ -125,6 +125,7 @@ class App {
         this.app.use('/api/v1/coupons', require('./routes/coupon.routes').default);
         this.app.use('/api/v1/settings', require('./routes/settings.routes').default);
         this.app.use('/api/v1/webhooks', require('./routes/webhook.routes').default);
+        this.app.use('/api/v1/orders', require('./routes/order.routes').default);
 
         // Backward-compatible routes (same as v1)
         this.app.use('/api/auth', require('./routes/auth.routes').default);
@@ -134,6 +135,7 @@ class App {
         this.app.use('/api/coupons', require('./routes/coupon.routes').default);
         this.app.use('/api/settings', require('./routes/settings.routes').default);
         this.app.use('/api/webhooks', require('./routes/webhook.routes').default);
+        this.app.use('/api/orders', require('./routes/order.routes').default);
 
         // Serve uploaded files
         this.app.use('/uploads', express.static(config.upload.uploadDir));

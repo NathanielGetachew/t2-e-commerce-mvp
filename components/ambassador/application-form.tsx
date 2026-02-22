@@ -39,9 +39,22 @@ export function AmbassadorApplicationForm({ userId, onSuccess }: AmbassadorAppli
         setError("")
 
         try {
+            // Map the frontend array format [{platform: "Instagram", url: ""}] 
+            // to the backend Zod format { instagram: "", facebook: "" }
+            const formattedSocialLinks: Record<string, string> = {};
+            socialLinks.forEach(link => {
+                if (link.url.trim() !== "") {
+                    // Lowercase the platform name to match schema (e.g. "Instagram" -> "instagram")
+                    let key = link.platform.toLowerCase();
+                    if (key === "twitter/x") key = "twitter";
+                    if (key === "blog/website") key = "blog";
+                    formattedSocialLinks[key] = link.url.trim();
+                }
+            });
+
             const formData = {
                 userId,
-                socialLinks: socialLinks.filter(l => l.url.trim() !== ""),
+                socialLinks: formattedSocialLinks,
                 whyJoin,
                 marketingStrategy
             }
@@ -100,23 +113,25 @@ export function AmbassadorApplicationForm({ userId, onSuccess }: AmbassadorAppli
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium">Why do you want to join?</label>
+                <label className="block text-sm font-medium">Why do you want to join? <span className="text-xs text-muted-foreground font-normal">(Min 50 chars)</span></label>
                 <Textarea
-                    placeholder="Tell us why you'd be a great ambassador..."
+                    placeholder="Tell us why you'd be a great ambassador (at least 50 characters)..."
                     value={whyJoin}
                     onChange={(e) => setWhyJoin(e.target.value)}
                     required
+                    minLength={50}
                     className="h-24"
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="block text-sm font-medium">Marketing Strategy</label>
+                <label className="block text-sm font-medium">Marketing Strategy <span className="text-xs text-muted-foreground font-normal">(Min 50 chars)</span></label>
                 <Textarea
-                    placeholder="How do you plan to promote our products?"
+                    placeholder="How do you plan to promote our products (at least 50 characters)?"
                     value={marketingStrategy}
                     onChange={(e) => setMarketingStrategy(e.target.value)}
                     required
+                    minLength={50}
                     className="h-24"
                 />
             </div>

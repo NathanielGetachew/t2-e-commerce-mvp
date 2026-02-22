@@ -13,6 +13,8 @@ export interface OrderResponse {
     subtotalCents: number;
     discountCents: number;
     totalCents: number;
+    totalAmount: number; // Added for frontend AdminOverview
+    product: string; // Added for frontend AdminOverview
     items: OrderItemResponse[];
     createdAt: Date;
     updatedAt: Date;
@@ -363,6 +365,9 @@ export class AdminService {
      * Format order response
      */
     private static formatOrder(order: any): OrderResponse {
+        const firstProjectName = order.items?.[0]?.product?.name || 'Unknown Product';
+        const productName = order.items?.length > 1 ? `${firstProjectName} + ${order.items.length - 1} more` : firstProjectName;
+
         return {
             id: order.id,
             orderNumber: order.orderNumber,
@@ -374,6 +379,8 @@ export class AdminService {
             subtotalCents: order.subtotalCents,
             discountCents: order.discountCents,
             totalCents: order.totalCents,
+            totalAmount: order.totalCents / 100,
+            product: productName,
             items: order.items?.map((item: any) => ({
                 id: item.id,
                 productId: item.productId,

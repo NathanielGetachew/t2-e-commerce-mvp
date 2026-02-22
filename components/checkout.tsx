@@ -35,42 +35,54 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
     e.preventDefault()
     setIsProcessing(true)
 
-    setTimeout(async () => {
-      // In production, you would call your backend API here
-      // which would then initialize Chapa payment
-
-      const chapaPayload = {
-        amount: totalPrice.toString(),
-        currency: "ETB",
-        email: formData.email,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone_number: formData.phone,
-        tx_ref: `T2-${Date.now()}`,
-        callback_url: `${window.location.origin}/api/payment/verify`,
-        return_url: `${window.location.origin}`,
-        customization: {
-          title: "T2 Import Services",
-          description: "Payment for imported products",
+    try {
+      const payload = {
+        cart: cart.map(item => ({ productId: item.product.id, quantity: item.quantity })),
+        customer: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city
         },
+        couponCode: couponCode || undefined
       }
 
-      console.log("[v0] Chapa payment payload:", chapaPayload)
+      console.log("[v0] Submitting order payload:", payload)
 
-      // Simulate successful payment
-      setPaymentSuccess(true)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Note: In a real app, you'd ensure the user's JWT is passed automatically via cookies
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
 
-      // Record commission if referral code is present
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || result.message || 'Failed to initialize payment');
+      }
+
+      console.log("[v0] Checkout URL received:", result.data.checkoutUrl)
+
+      // Record commission if referral code is present 
+      // Note: Ideal architectural place for this is the backend webhook, but keeping it here for MVP parity.
       if (couponCode) {
-        // In this simplified model, couponCode IS the referral code
         await recordCommission(couponCode, totalPrice)
       }
 
-      setTimeout(() => {
-        setIsProcessing(false)
-        onSuccess()
-      }, 2000)
-    }, 2000)
+      // Redirect user to Chapa
+      window.location.href = result.data.checkoutUrl;
+
+    } catch (error: any) {
+      console.error("Payment initialization error:", error);
+      alert(`Payment failed: ${error.message}`);
+      setIsProcessing(false);
+    }
   }
 
   if (paymentSuccess) {

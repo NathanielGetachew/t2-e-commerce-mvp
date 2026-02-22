@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import { logger } from '../utils/logger';
+import config from '../config/env';
 
 /**
  * Payment Webhook Verification Service
@@ -20,6 +21,53 @@ export interface PaymentWebhookData {
 }
 
 export class PaymentService {
+    /**
+     * Initialize Chapa Payment Transaction
+     * Calls api.chapa.co to generate a secure checkout URL
+     */
+    static async initializeChapaPayment(payload: {
+        amount: string;
+        currency: string;
+        email: string;
+        first_name: string;
+        last_name: string;
+        phone_number: string;
+        tx_ref: string;
+        callback_url: string;
+        return_url: string;
+        customization?: any;
+    }): Promise<{ success: boolean; data?: any; error?: string }> {
+        try {
+            const chapaSecretKey = config.chapa.secretKey;
+
+            if (!chapaSecretKey) {
+                logger.error('CHAPA_SECRET_KEY not configured in env');
+                return { success: false, error: 'Payment gateway not configured' };
+            }
+
+            const response = await axios.post(
+                'https://api.chapa.co/v1/transaction/initialize',
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${chapaSecretKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 10000,
+                }
+            );
+
+            if (response.data && response.data.status === 'success') {
+                return { success: true, data: response.data.data };
+            }
+
+            return { success: false, error: response.data?.message || 'Failed to initialize payment' };
+        } catch (error: any) {
+            logger.error('Chapa initialize transaction error:', error?.response?.data || error.message);
+            return { success: false, error: error?.response?.data?.message || 'Failed to communicate with Chapa' };
+        }
+    }
+
     /**
      * Verify Chapa webhook signature
      */
@@ -50,7 +98,7 @@ export class PaymentService {
         error?: string;
     }> {
         try {
-            const chapaSecretKey = process.env.CHAPA_SECRET_KEY;
+            const chapaSecretKey = config.chapa.secretKey;
 
             if (!chapaSecretKey) {
                 logger.error('CHAPA_SECRET_KEY not configured');
@@ -175,6 +223,7 @@ export class PaymentService {
                 OR: [
                     { stripeCheckoutSessionId: transactionRef },
                     { stripePaymentIntentId: transactionRef },
+                    { chapaTransactionRef: transactionRef },
                 ],
             },
         });
@@ -199,6 +248,7 @@ export class PaymentService {
                     OR: [
                         { stripeCheckoutSessionId: transactionRef },
                         { stripePaymentIntentId: transactionRef },
+                        { chapaTransactionRef: transactionRef },
                     ],
                     status: 'PENDING',
                 },

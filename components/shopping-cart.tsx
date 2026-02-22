@@ -6,6 +6,15 @@ import { Input } from "@/components/ui/input"
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react"
 import { useCart } from "@/components/providers/cart-provider"
 import { useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ShoppingCartProps {
   onClose: () => void
@@ -31,6 +40,29 @@ export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
     }
   }
 
+  if (cart.length === 0) {
+    return (
+      <AlertDialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <AlertDialogContent className="sm:max-w-md text-center">
+          <AlertDialogHeader className="flex flex-col items-center">
+            <div className="mx-auto w-12 h-12 bg-muted text-muted-foreground rounded-full flex items-center justify-center mb-4">
+              <ShoppingBag className="h-6 w-6" />
+            </div>
+            <AlertDialogTitle className="text-xl">Your cart is empty</AlertDialogTitle>
+            <AlertDialogDescription>
+              Looks like you haven't added anything to your cart yet. Browse our products and discover great deals!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-6">
+            <AlertDialogAction onClick={onClose} className="w-full sm:w-auto">
+              Continue Shopping
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-card shadow-2xl flex flex-col">
@@ -52,65 +84,56 @@ export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
 
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-muted-foreground mb-2">{"Your cart is empty"}</p>
-              <p className="text-sm text-muted-foreground mb-6">{"Add some products to get started"}</p>
-              <Button onClick={onClose}>{"Continue Shopping"}</Button>
-            </div>
-          ) : (
-            cart.map((item) => (
-              <Card key={item.product.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
-                      <img
-                        src={item.product.image || "/placeholder.svg"}
-                        alt={item.product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm line-clamp-2 mb-2">{item.product.name}</h3>
-                      <p className="text-sm text-primary font-bold mb-3">
-                        {item.product.price.toLocaleString()} {"ETB"}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center border rounded-lg">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="px-3 text-sm font-semibold">{item.quantity}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
+          {cart.map((item) => (
+            <Card key={item.product.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
+                    <img
+                      src={item.product.image || "/placeholder.svg"}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm line-clamp-2 mb-2">{item.product.name}</h3>
+                    <p className="text-sm text-primary font-bold mb-3">
+                      {item.product.price.toLocaleString()} {"ETB"}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center border rounded-lg">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeFromCart(item.product.id)}
+                          className="h-8 w-8"
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="px-3 text-sm font-semibold">{item.quantity}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
                         </Button>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => removeFromCart(item.product.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Footer */}

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import type { Product } from "@/app/actions/product-actions"
 import { validateCoupon } from "@/app/actions/coupon-actions"
+import { toast } from "sonner"
 
 export interface CartItem {
     product: Product
@@ -49,6 +50,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 )
             }
             return [...prevCart, { product, quantity }]
+        })
+        toast.success(`Added to cart`, {
+            description: `${quantity}x ${product.name} has been added to your shopping cart.`,
         })
     }
 

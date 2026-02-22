@@ -136,6 +136,7 @@ model Order {
 
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
+  chapaTransactionRef     String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

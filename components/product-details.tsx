@@ -114,8 +114,8 @@ export function ProductDetails({ product, onClose, user, onBuyNow }: ProductDeta
                 {/* Price */}
                 <div className="mb-6">
                   <PriceDisplay
-                    price={product.price}
-                    originalPrice={product.originalPrice}
+                    price={product.price * quantity}
+                    originalPrice={product.originalPrice ? product.originalPrice * quantity : undefined}
                     bulkPricing={product.bulkPricing}
                   />
                 </div>

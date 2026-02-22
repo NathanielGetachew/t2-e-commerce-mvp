@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
+import Link from "next/link"
 
 // Define Product interface locally or import from shared types
 interface Product {
@@ -30,9 +31,10 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-                <div
+                <Link
+                    href={`/shop/${product.id}`}
                     key={product.id}
-                    className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+                    className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 block"
                 >
                     {/* Image */}
                     <div className="aspect-square relative bg-muted/20 overflow-hidden">
@@ -54,7 +56,6 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
                                 variant="secondary"
                                 size="sm"
                                 className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                                onClick={() => onProductClick?.(product)}
                             >
                                 View Details
                             </Button>
@@ -76,12 +77,21 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
                                 </span>
                                 <span className="text-xs text-muted-foreground">Retail Price</span>
                             </div>
-                            <Button size="icon" variant="outline" className="h-8 w-8 rounded-full" onClick={() => onProductClick?.(product)}>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-8 w-8 rounded-full z-10 relative"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onProductClick?.(product);
+                                }}
+                            >
                                 <ShoppingCart className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
-                </div>
+                </Link>
             ))}
         </div>
     )

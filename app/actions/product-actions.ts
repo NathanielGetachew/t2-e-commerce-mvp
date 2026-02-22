@@ -16,6 +16,10 @@ export interface Product {
     singlePriceCents?: number
     originalPrice?: number
     tags?: string[]
+    rating?: number
+    reviewCount?: number
+    bulkPricing?: { minQty: number; price: number }[]
+    specifications?: Record<string, string>
 }
 
 export interface ProductProposal {

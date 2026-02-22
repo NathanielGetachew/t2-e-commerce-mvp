@@ -17,6 +17,7 @@ export const validate = (schema: ZodSchema, source: 'body' | 'query' | 'params' 
 
             next();
         } catch (error) {
+            console.log("ZOD VALIDATION ERROR:", error);
             if (error instanceof ZodError) {
                 const errors = error.errors.map((err) => ({
                     field: err.path.join('.'),

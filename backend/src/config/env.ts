@@ -22,6 +22,11 @@ interface Config {
         maxFileSize: number;
         uploadDir: string;
     };
+    chapa: {
+        publicKey: string;
+        secretKey: string;
+        webhookSecret: string;
+    };
 }
 
 const config: Config = {
@@ -43,6 +48,11 @@ const config: Config = {
         maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10),
         uploadDir: process.env.UPLOAD_DIR || './uploads',
     },
+    chapa: {
+        publicKey: process.env.CHAPA_PUBLIC_KEY || '',
+        secretKey: process.env.CHAPA_SECRET_KEY || '',
+        webhookSecret: process.env.CHAPA_WEBHOOK_SECRET || '',
+    }
 };
 
 export default config;

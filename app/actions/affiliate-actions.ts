@@ -8,7 +8,7 @@ import type { User } from "@/app/auth/actions"
  * Validate a referral code
  */
 export async function validateReferralCode(code: string) {
-    const response = await serverFetch('/affiliate/validate-code', {
+    const response = await serverFetch('/affiliates/validate', {
         method: 'POST',
         body: JSON.stringify({ code }),
     })
@@ -29,17 +29,23 @@ export async function validateReferralCode(code: string) {
  */
 export async function submitApplication(formData: {
     userId: string
-    socialLinks: { platform: string; url: string }[]
+    socialLinks: Record<string, string>
     whyJoin: string
     marketingStrategy: string
 }) {
-    const response = await serverFetch('/affiliate/apply', {
+    const response = await serverFetch('/affiliates/apply', {
         method: 'POST',
         body: JSON.stringify(formData),
     })
 
+    console.log("AFFILIATE APPLY RESPONSE:", JSON.stringify(response, null, 2))
+
     if (!response.success) {
-        return { success: false, error: response.error || 'Application failed' }
+        // Expose detailed validation errors to the frontend component
+        const errorMsg = response.data?.details
+            ? `Validation failed: ${JSON.stringify(response.data.details)}`
+            : response.error || 'Application failed'
+        return { success: false, error: errorMsg }
     }
 
     return { success: true }
@@ -49,7 +55,7 @@ export async function submitApplication(formData: {
  * Approve an ambassador (Admin only)
  */
 export async function approveAmbassador(userId: string) {
-    const response = await serverFetch(`/affiliate/applications/${userId}/approve`, {
+    const response = await serverFetch(`/affiliates/applications/${userId}/approve`, {
         method: 'POST',
     })
 
@@ -64,7 +70,7 @@ export async function approveAmbassador(userId: string) {
  * Reject an ambassador (Admin only)
  */
 export async function rejectAmbassador(userId: string) {
-    const response = await serverFetch(`/affiliate/applications/${userId}/reject`, {
+    const response = await serverFetch(`/affiliates/applications/${userId}/reject`, {
         method: 'POST',
     })
 
@@ -79,8 +85,8 @@ export async function rejectAmbassador(userId: string) {
  * Update custom referral code
  */
 export async function updateCustomCode(userId: string, newCode: string) {
-    const response = await serverFetch('/affiliate/custom-code', {
-        method: 'PUT',
+    const response = await serverFetch('/affiliates/custom-code', {
+        method: 'PATCH',
         body: JSON.stringify({ code: newCode }),
     })
 
@@ -126,7 +132,7 @@ export async function recordCommission(referralCode: string, orderAmount: number
  * Get referral stats for current user
  */
 export async function getReferralStats(userId: string) {
-    const response = await serverFetch('/affiliate/stats')
+    const response = await serverFetch('/affiliates/stats')
 
     if (!response.success) {
         return null
@@ -139,7 +145,7 @@ export async function getReferralStats(userId: string) {
  * Get pending ambassador applications (Admin only)
  */
 export async function getAmbassadorApplications() {
-    const response = await serverFetch('/affiliate/applications')
+    const response = await serverFetch('/affiliates/applications')
 
     if (!response.success) {
         console.error('[getAmbassadorApplications] Failed:', response.error)
@@ -153,7 +159,7 @@ export async function getAmbassadorApplications() {
  * Get all approved ambassadors (Admin only)
  */
 export async function getAllAmbassadors() {
-    const response = await serverFetch('/affiliate/ambassadors')
+    const response = await serverFetch('/affiliates')
 
     if (!response.success) {
         console.error('[getAllAmbassadors] Failed:', response.error)
