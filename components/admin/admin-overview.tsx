@@ -22,15 +22,46 @@ interface AdminOverviewProps {
     onStatusUpdate: (orderId: string, newStatus: OrderStatus) => void
 }
 
-const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
+const STATUS_OPTIONS: { value: DashboardOrderStatus; label: string }[] = [
+    { value: "PENDING", label: "Pending" },
+    { value: "PAID", label: "Paid" },
+    { value: "FULFILLING", label: "Fulfilling" },
+    { value: "SHIPPED", label: "Shipped" },
+    { value: "DELIVERED", label: "Delivered" },
+    { value: "CANCELLED", label: "Cancelled" },
+    { value: "REFUNDED", label: "Refunded" },
+    // Legacy values for backward compat
     { value: "ordered", label: "Order Placed" },
     { value: "warehouse_china", label: "Warehouse China" },
-    { value: "shipped", label: "Shipped" },
     { value: "customs_addis", label: "Customs Addis" },
-    { value: "delivered", label: "Delivered" },
 ]
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
+    // Prisma values
+    PENDING: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    PAID: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+    FULFILLING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    SHIPPED: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    DELIVERED: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    REFUNDED: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+    // Legacy values
+    ordered: "bg-blue-100 text-blue-800",
+    warehouse_china: "bg-yellow-100 text-yellow-800",
+    shipped: "bg-purple-100 text-purple-800",
+    customs_addis: "bg-orange-100 text-orange-800",
+    delivered: "bg-green-100 text-green-800",
+}
+
+// Color for order distribution pie chart
+const STATUS_PIE_COLORS: Record<string, string> = {
+    PENDING: "#3B82F6",
+    PAID: "#10B981",
+    FULFILLING: "#EAB308",
+    SHIPPED: "#A855F7",
+    DELIVERED: "#22C55E",
+    CANCELLED: "#EF4444",
+    REFUNDED: "#6B7280",
     ordered: "#3B82F6",
     warehouse_china: "#EAB308",
     shipped: "#A855F7",
@@ -81,24 +112,20 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
         : 0
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
-    const statusDistribution = STATUS_OPTIONS.map((s) => ({
-        name: s.label,
-        value: orders.filter((o) => o.status === s.value).length,
-        fill: STATUS_COLORS[s.value],
-    })).filter((i) => i.value > 0)
+    const statusDistribution = Object.entries(
+        orders.reduce((acc: Record<string, number>, o) => {
+            acc[o.status] = (acc[o.status] || 0) + 1
+            return acc
+        }, {})
+    ).map(([status, value]) => ({
+        name: STATUS_OPTIONS.find(s => s.value === status)?.label || status,
+        value,
+        fill: STATUS_PIE_COLORS[status] || "#94a3b8",
+    }))
 
     const revenueTrend = analytics?.revenueTrend || []
 
-    const getStatusColor = (status: OrderStatus) => {
-        switch (status) {
-            case "ordered": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-            case "warehouse_china": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-            case "shipped": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-            case "customs_addis": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-            case "delivered": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            default: return ""
-        }
-    }
+    const getStatusColor = (status: string) => STATUS_COLORS[status] || "bg-gray-100 text-gray-800"
 
     const timeSinceUpdate = () => {
         const s = Math.floor((Date.now() - lastUpdated.getTime()) / 1000)

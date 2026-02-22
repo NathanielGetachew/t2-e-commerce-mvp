@@ -70,6 +70,8 @@ export async function getAdminOrders(page = 1, limit = 10) {
 
     const response = await serverFetch(`/admin/orders?page=${page}&limit=${limit}`)
 
+    console.log('[getAdminOrders] response:', JSON.stringify({ success: response.success, ordersCount: response.data?.orders?.length, total: response.data?.pagination?.total ?? response.data?.total, error: response.error }))
+
     if (!response.success || !response.data) {
         console.error('Failed to fetch admin orders:', response.error)
         return { orders: [], total: 0 }
@@ -77,7 +79,8 @@ export async function getAdminOrders(page = 1, limit = 10) {
 
     return {
         orders: response.data.orders || [],
-        total: response.data.total || 0,
+        // The backend wraps total inside `pagination` object
+        total: response.data.pagination?.total ?? response.data.total ?? 0,
     }
 }
 
