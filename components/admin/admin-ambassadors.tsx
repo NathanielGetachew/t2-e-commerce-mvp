@@ -176,15 +176,15 @@ export function AdminAmbassadors() {
                                             </div>
 
                                             <div className="flex flex-wrap gap-2">
-                                                {app.applicationData?.socialLinks?.map((link, i) => (
+                                                {app.applicationData?.socialLinks && Object.entries(app.applicationData.socialLinks as Record<string, string>).map(([platform, url]) => (
                                                     <a
-                                                        key={i}
-                                                        href={link.url}
+                                                        key={platform}
+                                                        href={url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs hover:bg-blue-500/20"
+                                                        className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs hover:bg-blue-500/20 capitalize"
                                                     >
-                                                        {link.platform} <ExternalLink className="h-3 w-3" />
+                                                        {platform} <ExternalLink className="h-3 w-3" />
                                                     </a>
                                                 ))}
                                             </div>

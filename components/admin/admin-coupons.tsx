@@ -26,7 +26,7 @@ export function AdminCoupons({ user }: AdminCouponsProps) {
 
     useEffect(() => {
         loadData()
-    }, [user])
+    }, [user?.id])
 
     const loadData = async () => {
         setLoading(true)

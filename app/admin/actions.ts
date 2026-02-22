@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getUser } from '@/app/auth/actions'
 import { serverFetch } from '@/lib/server-api'
-import { DashboardOrderStatus } from '@/components/admin-dashboard'
+import { DashboardOrderStatus } from '@/types/admin'
 
 /**
  * Update order status (Admin only)
