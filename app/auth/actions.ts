@@ -2,6 +2,7 @@
 import { UserRole } from "@prisma/client"
 import { cookies } from "next/headers"
 import { serverFetch } from "@/lib/server-api"
+import { cache } from "react"
 
 // Define a User type that matches what the UI expects
 export interface User {
@@ -34,23 +35,22 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 
 /**
  * Get the currently authenticated user.
- * 
- * Reads the auth_token cookie set by the login page, then calls
- * the backend /auth/me endpoint to get fresh user data.
+ *
+ * Wrapped with React's cache() so that multiple calls within the same
+ * server render/request (e.g. from both the page and server actions)
+ * only make ONE backend /auth/me call instead of 3-4.
+ * The cache is automatically scoped per request.
  */
-export async function getUser(): Promise<User | null> {
+export const getUser = cache(async (): Promise<User | null> => {
     const cookieStore = await cookies()
     const token = cookieStore.get('auth_token')?.value
 
     if (!token) {
-        console.log('[getUser] No auth_token cookie found');
         return null
     }
 
-    console.log('[getUser] Found token, validating with backend...');
-
     try {
-        // Call backend with the token to get full user data
+        // Call backend with the token to get fresh user data
         const response = await fetch(`${API_BASE_URL}/auth/me`, {
             headers: {
                 'Cookie': `auth_token=${token}`,
@@ -65,7 +65,6 @@ export async function getUser(): Promise<User | null> {
 
         const data = await response.json()
         if (!data.success || !data.data?.user) {
-            console.log('[getUser] Backend validation failed:', data);
             return null
         }
 
@@ -83,7 +82,7 @@ export async function getUser(): Promise<User | null> {
         console.error('[getUser] Failed to validate token:', error)
         return null
     }
-}
+})
 
 /**
  * Sign in a user.

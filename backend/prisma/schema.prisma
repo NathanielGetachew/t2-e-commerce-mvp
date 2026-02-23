@@ -15,12 +15,17 @@ enum UserRole {
 
 enum OrderStatus {
   PENDING
+  PROCESSING
   PAID
   FULFILLING
   SHIPPED
   DELIVERED
   CANCELLED
   REFUNDED
+  // Legacy status values for backward compatibility
+  ordered
+  warehouse_china
+  customs_addis
 }
 
 enum ShipmentStatus {

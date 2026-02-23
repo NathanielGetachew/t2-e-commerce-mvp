@@ -2,17 +2,42 @@
 
 import { useState, useEffect } from "react"
 import { getAmbassadorApplications, getAllAmbassadors, approveAmbassador, rejectAmbassador } from "@/app/actions/affiliate-actions"
-import type { User } from "@/app/auth/actions"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2, Check, X, Instagram, ExternalLink, RefreshCcw } from "lucide-react"
+import { Loader2, Check, X, ExternalLink, RefreshCcw } from "lucide-react"
+
+// Matches the shape returned by backend GET /api/affiliates
+interface AmbassadorData {
+    id: string
+    email: string | null
+    name: string | null
+    ambassadorCode: string | null
+    commissionRateBp: number
+    isAmbassador: boolean
+    totalEarnings?: number
+    metrics?: { clicks: number; conversions: number; revenueGenerated: number }
+}
+
+// Matches the shape returned by backend GET /api/affiliates/applications
+interface ApplicationData {
+    id: string
+    userId: string
+    userEmail: string
+    userName: string | null
+    applicationData: {
+        socialLinks?: Record<string, string>
+        whyJoin?: string
+        marketingStrategy?: string
+    } | null
+    status: string
+    createdAt: string
+}
 
 export function AdminAmbassadors() {
     const [activeTab, setActiveTab] = useState("overview")
-    const [applications, setApplications] = useState<User[]>([])
-    const [ambassadors, setAmbassadors] = useState<User[]>([])
+    const [applications, setApplications] = useState<ApplicationData[]>([])
+    const [ambassadors, setAmbassadors] = useState<AmbassadorData[]>([])
     const [loading, setLoading] = useState(true)
     const [processingId, setProcessingId] = useState<string | null>(null)
 
@@ -128,8 +153,8 @@ export function AdminAmbassadors() {
                                     <tbody>
                                         {ambassadors.map(amb => (
                                             <tr key={amb.id} className="border-b last:border-0 hover:bg-muted/50">
-                                                <td className="py-3">{amb.fullName}</td>
-                                                <td className="py-3 font-mono">{amb.customCode || amb.referralCode}</td>
+                                                <td className="py-3">{amb.name || amb.email || "—"}</td>
+                                                <td className="py-3 font-mono">{amb.ambassadorCode || "—"}</td>
                                                 <td className="py-3">{amb.metrics?.clicks || 0}</td>
                                                 <td className="py-3">{amb.metrics?.conversions || 0}</td>
                                                 <td className="py-3">${amb.metrics?.revenueGenerated?.toFixed(2) || "0.00"}</td>
@@ -160,8 +185,8 @@ export function AdminAmbassadors() {
                                     <div key={app.id} className="flex flex-col md:flex-row justify-between p-6 border rounded-xl gap-6 bg-card hover:bg-muted/30 transition-colors">
                                         <div className="space-y-4 flex-1">
                                             <div>
-                                                <h3 className="font-bold text-lg">{app.fullName}</h3>
-                                                <p className="text-sm text-muted-foreground">{app.email}</p>
+                                                <h3 className="font-bold text-lg">{app.userName || app.userEmail || "—"}</h3>
+                                                <p className="text-sm text-muted-foreground">{app.userEmail}</p>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

@@ -19,10 +19,10 @@ interface AdminOverviewProps {
     totalOrders: number
     analytics: any
     user: User | null
-    onStatusUpdate: (orderId: string, newStatus: OrderStatus) => void
+    onStatusUpdate: (orderId: string, newStatus: OrderStatus) => Promise<{ success?: boolean; error?: string }> | void
 }
 
-const STATUS_OPTIONS: { value: DashboardOrderStatus; label: string }[] = [
+const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
     { value: "PENDING", label: "Pending" },
     { value: "PAID", label: "Paid" },
     { value: "FULFILLING", label: "Fulfilling" },
@@ -69,7 +69,7 @@ const STATUS_PIE_COLORS: Record<string, string> = {
     delivered: "#10B981",
 }
 
-const AUTO_REFRESH_INTERVAL = 30_000 // 30 seconds
+const AUTO_REFRESH_INTERVAL = 120_000 // 2 minutes
 
 export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal, analytics: initialAnalytics, user, onStatusUpdate }: AdminOverviewProps) {
     const [orders, setOrders] = useState<Order[]>(initialOrders)
@@ -99,6 +99,25 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
             setIsRefreshing(false)
         }
     }, [])
+
+    // Optimistically update local state, then call the server action.
+    // This prevents the Select from snapping back to the old value.
+    const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+        const prevOrders = orders
+        // Optimistic update
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
+        try {
+            const result = await onStatusUpdate(orderId, newStatus)
+            if (result && (result as any).error) {
+                // Roll back on server error
+                setOrders(prevOrders)
+                console.error('Status update failed:', (result as any).error)
+            }
+        } catch (e) {
+            setOrders(prevOrders)
+            console.error('Status update failed:', e)
+        }
+    }
 
     // Auto-refresh every 30s
     useEffect(() => {
@@ -425,7 +444,7 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
                                         <TableCell>
                                             <Select
                                                 value={order.status}
-                                                onValueChange={(value) => onStatusUpdate(order.id, value as OrderStatus)}
+                                                onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
                                             >
                                                 <SelectTrigger className="w-[148px] h-8 text-xs">
                                                     <SelectValue />

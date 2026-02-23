@@ -53,14 +53,24 @@ class App {
         this.app.use(sanitizeInput);
 
         // Global rate limiting
+        // NOTE: In dev, all Next.js SSR requests come from the same server IP (localhost).
+        // We skip rate limiting for loopback addresses to avoid blocking SSR.
+        const isDev = config.nodeEnv === 'development';
         const globalLimiter = rateLimit({
             windowMs: config.rateLimit.windowMs,
             max: config.rateLimit.maxRequests,
             message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests from this IP, please try again later.' } },
             standardHeaders: true,
             legacyHeaders: false,
+            skip: (req) => {
+                if (!isDev) return false;
+                const ip = req.ip || req.connection?.remoteAddress || '';
+                // Skip rate limiting for loopback/localhost (Next.js SSR server)
+                return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+            },
         });
         this.app.use('/api/', globalLimiter);
+
 
         // Stricter rate limiting for auth endpoints (prevent brute force)
         const authLimiter = rateLimit({

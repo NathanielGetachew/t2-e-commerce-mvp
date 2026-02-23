@@ -4,9 +4,12 @@ export type DashboardOrderStatus =
   // Prisma enum values (actual DB values)
   | 'PENDING'
   | 'PROCESSING'
+  | 'PAID'
+  | 'FULFILLING'
   | 'SHIPPED'
   | 'DELIVERED'
   | 'CANCELLED'
+  | 'REFUNDED'
   // Legacy frontend display values (kept for backward compatibility)
   | 'ordered'
   | 'warehouse_china'
