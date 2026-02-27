@@ -17,6 +17,21 @@ export const signupSchema = z.object({
 
 export type SignupInput = z.infer<typeof signupSchema>;
 
+// Forgot Password schema
+export const forgotPasswordSchema = z.object({
+    email: z.string().email('Invalid email address'),
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+// Reset Password schema
+export const resetPasswordSchema = z.object({
+    token: z.string().min(1, 'Token is required'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 // Create admin schema
 export const createAdminSchema = z.object({
     email: z.string().email('Invalid email address'),

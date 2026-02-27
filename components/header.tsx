@@ -175,9 +175,10 @@ export function Header({ cartCount: propCartCount, onCartClick, user, isAdmin }:
  */
 import { signOut } from "@/app/auth/actions"
 
-async function performSignOut() {
-  await signOut()
-  window.location.href = '/auth/login'
+export function performSignOut() {
+  signOut().then(() => {
+    window.location.href = '/auth/login';
+  });
 }
 
 function UserNav({ user, isAdmin, cartCount, onCartClick }: {

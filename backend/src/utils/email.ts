@@ -95,4 +95,46 @@ export class EmailService {
             return false;
         }
     }
+
+    /**
+     * Send password reset link
+     */
+    static async sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
+        try {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
+
+            const mailOptions = {
+                from: process.env.SMTP_FROM || '"T2 E-commerce" <noreply@t2-ecommerce.com>',
+                to: email,
+                subject: 'Reset your password - T2 E-commerce',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2>Password Reset Request</h2>
+                        <p>We received a request to reset your password for your T2 E-commerce account.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${resetLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                Reset Password
+                            </a>
+                        </div>
+                        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; color: #666;">
+                            <a href="${resetLink}">${resetLink}</a>
+                        </p>
+                        <p>This link will expire in 1 hour.</p>
+                        <p>If you didn't request a password reset, you can safely ignore this email.</p>
+                        <p>Best regards,<br>The T2 E-commerce Team</p>
+                    </div>
+                `,
+            };
+
+            const transporter = await this.ensureTransporter();
+            const info = await transporter.sendMail(mailOptions);
+            logger.info(`Password reset email sent to ${email} (Message ID: ${info.messageId})`);
+            return true;
+        } catch (error) {
+            logger.error(`Failed to send password reset email to ${email}:`, error);
+            return false;
+        }
+    }
 }

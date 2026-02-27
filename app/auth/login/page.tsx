@@ -91,6 +91,11 @@ export default function Page() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
+                    <div className="flex justify-end">
+                      <Link href="/auth/forgot-password" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+                        {"Forgot Password?"}
+                      </Link>
+                    </div>
                   </div>
                   {error && <p className="text-sm text-red-500">{error}</p>}
                   <Button type="submit" className="w-full" disabled={isLoading}>

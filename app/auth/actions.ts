@@ -217,6 +217,58 @@ export async function verifyEmailAction(token: string) {
 }
 
 /**
+ * Handle password reset request (Forgot Password)
+ */
+export async function forgotPasswordAction(email: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+            cache: 'no-store',
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+            const errorMsg = result.error?.message || result.error || 'Failed to request password reset'
+            return { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }
+        }
+
+        return { success: true }
+    } catch (error) {
+        console.error('[forgotPassword] Error:', error)
+        return { error: error instanceof Error ? error.message : 'Request failed' }
+    }
+}
+
+/**
+ * Handle password reset using token (Reset Password)
+ */
+export async function resetPasswordAction(token: string, password: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, password }),
+            cache: 'no-store',
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+            const errorMsg = result.error?.message || result.error || 'Password reset failed'
+            return { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }
+        }
+
+        return { success: true }
+    } catch (error) {
+        console.error('[resetPassword] Error:', error)
+        return { error: error instanceof Error ? error.message : 'Failed to reset password' }
+    }
+}
+
+/**
  * Sign out the current user.
  */
 export async function signOut() {

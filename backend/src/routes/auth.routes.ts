@@ -3,7 +3,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { superAdminOnly } from '../middleware/authorize';
 import { validate } from '../middleware/validation';
-import { loginSchema, signupSchema, createAdminSchema } from '../types/auth.types';
+import { loginSchema, signupSchema, createAdminSchema, forgotPasswordSchema, resetPasswordSchema } from '../types/auth.types';
 
 const router = Router();
 
@@ -20,6 +20,20 @@ router.post('/signup', validate(signupSchema), AuthController.signup);
  * @access  Public
  */
 router.post('/login', validate(loginSchema), AuthController.login);
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Request a password reset email
+ * @access  Public
+ */
+router.post('/forgot-password', validate(forgotPasswordSchema), AuthController.forgotPassword);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password using token
+ * @access  Public
+ */
+router.post('/reset-password', validate(resetPasswordSchema), AuthController.resetPassword);
 
 /**
  * @route   POST /api/auth/logout

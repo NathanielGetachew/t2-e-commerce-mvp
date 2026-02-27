@@ -88,6 +88,48 @@ export class AuthController {
     }
 
     /**
+     * POST /api/auth/forgot-password
+     * Request a password reset email
+     */
+    static async forgotPassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const { email } = req.body;
+
+            if (!email) {
+                return ResponseHandler.error(res, 'Email is required', 400);
+            }
+
+            await AuthService.forgotPassword(email);
+
+            return ResponseHandler.success(res, null, 'If that email exists, a reset link has been sent');
+        } catch (error: any) {
+            logger.error('Forgot password error:', error);
+            return ResponseHandler.error(res, error.message || 'Failed to process request', 400);
+        }
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     * Reset password using token
+     */
+    static async resetPassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const { token, password } = req.body;
+
+            if (!token || !password) {
+                return ResponseHandler.error(res, 'Token and new password are required', 400);
+            }
+
+            await AuthService.resetPassword(token, password);
+
+            return ResponseHandler.success(res, null, 'Password reset successfully');
+        } catch (error: any) {
+            logger.error('Reset password error:', error);
+            return ResponseHandler.error(res, error.message || 'Failed to reset password', 400);
+        }
+    }
+
+    /**
      * POST /api/auth/logout
      * Logout user
      */

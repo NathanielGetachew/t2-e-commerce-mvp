@@ -30,15 +30,14 @@ export function AdminHeader({ user }: AdminHeaderProps) {
     const [addAdminMessage, setAddAdminMessage] = useState<string | null>(null)
     const [isAddAdminOpen, setIsAddAdminOpen] = useState(false)
 
-    const handleSignOut = async () => {
-        setAddAdminLoading(true) // reuse loading state if needed, or just proceed
-        try {
-            await signOut()
+    const handleSignOut = () => {
+        setAddAdminLoading(true)
+        signOut().then(() => {
             window.location.href = '/auth/login'
-        } catch (error) {
+        }).catch((error) => {
             console.error('Sign out error:', error)
             window.location.href = '/'
-        }
+        })
     }
 
     const handleCreateAdmin = async (e: React.FormEvent) => {

@@ -15,9 +15,10 @@ import { signOut } from "@/app/auth/actions"
 export function AdminSidebar({ currentView }: AdminSidebarProps) {
     const pathname = usePathname()
 
-    const handleLogout = async () => {
-        await signOut()
-        window.location.href = "/"
+    const handleLogout = () => {
+        signOut().then(() => {
+            window.location.href = "/"
+        })
     }
 
     const isActive = (path: string) => pathname === path

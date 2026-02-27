@@ -165,7 +165,7 @@ export class AuthService {
         // Hash password
         const hashedPassword = await PasswordService.hash(password);
 
-        // Create admin user
+        // Create admin user — automatically verified since they're created by Super Admin
         const user = await prisma.user.create({
             data: {
                 email,
@@ -173,6 +173,7 @@ export class AuthService {
                 password: hashedPassword,
                 clerkId: `admin_${Date.now()}_${Math.random().toString(36).substring(7)}`,
                 role: UserRole.ADMIN,
+                isEmailVerified: true,
             },
         });
 
@@ -202,6 +203,81 @@ export class AuthService {
         });
 
         logger.info(`User email verified: ${user.email}`);
+        return true;
+    }
+
+    /**
+     * Handle forgot password request
+     */
+    static async forgotPassword(email: string): Promise<boolean> {
+        const user = await prisma.user.findFirst({
+            where: { email },
+        });
+
+        // Even if user is not found, we return true to prevent email enumeration
+        if (!user) {
+            logger.info(`Forgot password requested for unknown email: ${email}`);
+            return true;
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                resetPasswordToken: resetToken,
+                resetPasswordExpires,
+            },
+        });
+
+        // Send reset email
+        EmailService.sendPasswordResetEmail(email, resetToken).catch((err) => {
+            logger.error(`Error sending password reset email to ${email}:`, err);
+        });
+
+        logger.info(`Password reset requested for: ${user.email}`);
+        return true;
+    }
+
+    /**
+     * Handle password reset securely
+     */
+    static async resetPassword(token: string, newPassword: string): Promise<boolean> {
+        const user = await prisma.user.findUnique({
+            where: { resetPasswordToken: token },
+        });
+
+        if (!user) {
+            throw new Error('Invalid or expired password reset token');
+        }
+
+        // Check if token is expired
+        if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+            throw new Error('Password reset token has expired');
+        }
+
+        // Validate password strength
+        const passwordValidation = PasswordService.validate(newPassword);
+        if (!passwordValidation.valid) {
+            throw new Error(passwordValidation.message || 'Invalid password');
+        }
+
+        // Hash new password
+        const hashedPassword = await PasswordService.hash(newPassword);
+
+        // Update user password and clear reset fields
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                resetPasswordToken: null,
+                resetPasswordExpires: null,
+            },
+        });
+
+        logger.info(`Password successfully reset for: ${user.email}`);
         return true;
     }
 
