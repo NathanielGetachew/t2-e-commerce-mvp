@@ -54,6 +54,10 @@ model User {
   ambassadorCode   String?  @unique
   commissionRateBp Int      @default(500) // 5.00%
 
+  // Email verification fields
+  isEmailVerified   Boolean  @default(false)
+  verificationToken String?  @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

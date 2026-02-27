@@ -3,6 +3,8 @@ import { UserRole } from '@prisma/client';
 import { PasswordService } from '../utils/password';
 import { JWTService } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { EmailService } from '../utils/email';
+import crypto from 'crypto';
 
 export interface UserResponse {
     id: string;
@@ -39,6 +41,9 @@ export class AuthService {
         // Hash password
         const hashedPassword = await PasswordService.hash(password);
 
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+
         // Create user
         const user = await prisma.user.create({
             data: {
@@ -47,7 +52,14 @@ export class AuthService {
                 password: hashedPassword,
                 clerkId: `local_${Date.now()}_${Math.random().toString(36).substring(7)}`, // Temporary ID
                 role: UserRole.CUSTOMER,
+                isEmailVerified: false,
+                verificationToken,
             },
+        });
+
+        // Send Verification Email
+        EmailService.sendVerificationEmail(email, verificationToken).catch((err) => {
+            logger.error(`Error sending verification email to ${email}:`, err);
         });
 
         // Generate JWT
@@ -90,6 +102,10 @@ export class AuthService {
         const isPasswordValid = await PasswordService.compare(password, user.password);
         if (!isPasswordValid) {
             throw new Error('Invalid email or password');
+        }
+
+        if (!user.isEmailVerified) {
+            throw new Error('Please verify your email address before logging in. Check your inbox.');
         }
 
         // Generate JWT
@@ -163,6 +179,30 @@ export class AuthService {
         logger.info(`New admin user created: ${user.email}`);
 
         return this.formatUser(user);
+    }
+
+    /**
+     * Verify user email
+     */
+    static async verifyEmail(token: string): Promise<boolean> {
+        const user = await prisma.user.findUnique({
+            where: { verificationToken: token },
+        });
+
+        if (!user) {
+            throw new Error('Invalid or expired verification token');
+        }
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                isEmailVerified: true,
+                verificationToken: null,
+            },
+        });
+
+        logger.info(`User email verified: ${user.email}`);
+        return true;
     }
 
     /**

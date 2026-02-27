@@ -29,6 +29,13 @@ router.post('/login', validate(loginSchema), AuthController.login);
 router.post('/logout', AuthController.logout);
 
 /**
+ * @route   POST /api/auth/verify-email
+ * @desc    Verify email address
+ * @access  Public
+ */
+router.post('/verify-email', AuthController.verifyEmail);
+
+/**
  * @route   GET /api/auth/me
  * @desc    Get current user
  * @access  Private

@@ -168,6 +168,8 @@ export async function signUp(data: { email: string; password: string; fullName: 
         }
 
         const token = result.data?.token
+        /*
+        We no longer auto-login here because the user must verify their email first.
         if (token) {
             // Auto-login: set cookie after successful signup
             const cookieStore = await cookies()
@@ -179,11 +181,38 @@ export async function signUp(data: { email: string; password: string; fullName: 
                 maxAge: 7 * 24 * 60 * 60,
             })
         }
+        */
 
         return { success: true }
     } catch (error) {
         console.error('[signUp] Error:', error)
         return { error: error instanceof Error ? error.message : 'Signup failed' }
+    }
+}
+
+/**
+ * Verify user email.
+ */
+export async function verifyEmailAction(token: string) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token }),
+            cache: 'no-store',
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+            const errorMsg = result.error?.message || result.error || 'Verification failed'
+            return { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }
+        }
+
+        return { success: true }
+    } catch (error) {
+        console.error('[verifyEmail] Error:', error)
+        return { error: error instanceof Error ? error.message : 'Verification failed' }
     }
 }
 

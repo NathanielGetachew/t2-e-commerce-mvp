@@ -21,6 +21,7 @@ export default function Page() {
   const [phone, setPhone] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -46,7 +47,7 @@ export default function Page() {
         throw new Error(result.error)
       }
 
-      router.push("/auth/sign-up-success")
+      setIsSuccess(true)
     } catch (error: unknown) {
       console.error("Sign up error:", error)
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -66,78 +67,89 @@ export default function Page() {
           </Link>
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{"Sign up"}</CardTitle>
-              <CardDescription>{"Create a new account"}</CardDescription>
+              <CardTitle className="text-2xl">{isSuccess ? "Check your email" : "Sign up"}</CardTitle>
+              <CardDescription>{isSuccess ? "We've sent you a verification link" : "Create a new account"}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSignUp}>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="full-name">{"Full Name"}</Label>
-                    <Input
-                      id="full-name"
-                      type="text"
-                      placeholder="Abebe Kebede"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">{"Phone Number"}</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="0911234567"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">{"Email"}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">{"Password"}</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="repeat-password">{"Repeat Password"}</Label>
-                    <Input
-                      id="repeat-password"
-                      type="password"
-                      required
-                      value={repeatPassword}
-                      onChange={(e) => setRepeatPassword(e.target.value)}
-                    />
-                  </div>
-
-                  {error && <p className="text-sm text-red-500">{error}</p>}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Sign up"}
+              {isSuccess ? (
+                <div className="flex flex-col gap-6 text-center">
+                  <p className="text-muted-foreground">
+                    We've sent an email to <strong>{email}</strong>. Please click the link inside to verify your account.
+                  </p>
+                  <Button variant="outline" onClick={() => router.push("/auth/login")}>
+                    Go to Login
                   </Button>
                 </div>
-                <div className="mt-4 text-center text-sm">
-                  {"Already have an account? "}
-                  <Link href="/auth/login" className="underline underline-offset-4">
-                    {"Login"}
-                  </Link>
-                </div>
-              </form>
+              ) : (
+                <form onSubmit={handleSignUp}>
+                  <div className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="full-name">{"Full Name"}</Label>
+                      <Input
+                        id="full-name"
+                        type="text"
+                        placeholder="Abebe Kebede"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone">{"Phone Number"}</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="0911234567"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">{"Email"}</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="password">{"Password"}</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="repeat-password">{"Repeat Password"}</Label>
+                      <Input
+                        id="repeat-password"
+                        type="password"
+                        required
+                        value={repeatPassword}
+                        onChange={(e) => setRepeatPassword(e.target.value)}
+                      />
+                    </div>
+
+                    {error && <p className="text-sm text-red-500">{error}</p>}
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Creating account..." : "Sign up"}
+                    </Button>
+                  </div>
+                  <div className="mt-4 text-center text-sm">
+                    {"Already have an account? "}
+                    <Link href="/auth/login" className="underline underline-offset-4">
+                      {"Login"}
+                    </Link>
+                  </div>
+                </form>
+              )}
             </CardContent>
           </Card>
         </div>

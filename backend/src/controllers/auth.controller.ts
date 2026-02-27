@@ -67,6 +67,27 @@ export class AuthController {
     }
 
     /**
+     * POST /api/auth/verify-email
+     * Verify user email
+     */
+    static async verifyEmail(req: Request, res: Response): Promise<Response> {
+        try {
+            const { token } = req.body;
+
+            if (!token) {
+                return ResponseHandler.error(res, 'Verification token is required', 400);
+            }
+
+            await AuthService.verifyEmail(token);
+
+            return ResponseHandler.success(res, null, 'Email verified successfully');
+        } catch (error: any) {
+            logger.error('Email verification error:', error);
+            return ResponseHandler.error(res, error.message || 'Verification failed', 400);
+        }
+    }
+
+    /**
      * POST /api/auth/logout
      * Logout user
      */
