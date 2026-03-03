@@ -41,3 +41,13 @@ export const createAdminSchema = z.object({
 });
 
 export type CreateAdminInput = z.infer<typeof createAdminSchema>;
+
+// Update admin schema
+export const updateAdminSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+    email: z.string().email('Invalid email address').optional(),
+}).refine((data) => data.name || data.email, {
+    message: 'At least one of name or email must be provided',
+});
+
+export type UpdateAdminInput = z.infer<typeof updateAdminSchema>;

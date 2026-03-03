@@ -7,14 +7,14 @@ import type { User } from "@/app/auth/actions"
 interface AdminLayoutProps {
     children: React.ReactNode
     user: User | null
-    currentView: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'
+    currentView: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors' | 'admins'
 }
 
 export function AdminLayout({ children, user, currentView }: AdminLayoutProps) {
     return (
         <div className="flex min-h-screen bg-muted/40 font-sans">
             {/* Sidebar */}
-            <AdminSidebar currentView={currentView} />
+            <AdminSidebar currentView={currentView} user={user} />
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col">

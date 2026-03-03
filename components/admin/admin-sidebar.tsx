@@ -3,16 +3,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, Tag, LogOut, Settings, Truck, Users } from "lucide-react"
+import { LayoutDashboard, Package, Tag, LogOut, Settings, Truck, Users, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
-    currentView?: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors'
+    currentView?: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors' | 'admins'
+    user?: { role: string } | null
 }
 
 import { signOut } from "@/app/auth/actions"
 
-export function AdminSidebar({ currentView }: AdminSidebarProps) {
+export function AdminSidebar({ currentView, user }: AdminSidebarProps) {
     const pathname = usePathname()
 
     const handleLogout = () => {
@@ -78,6 +79,17 @@ export function AdminSidebar({ currentView }: AdminSidebarProps) {
                         Ambassadors
                     </Button>
                 </Link>
+                {user?.role === 'SUPER_ADMIN' && (
+                    <Link href="/admin/admins">
+                        <Button
+                            variant={isActive('/admin/admins') ? 'secondary' : 'ghost'}
+                            className={cn("justify-start gap-2 w-full", isActive('/admin/admins') && "font-semibold")}
+                        >
+                            <ShieldCheck className="h-4 w-4" />
+                            Admin Management
+                        </Button>
+                    </Link>
+                )}
             </nav>
 
             <div className="flex flex-col gap-2">

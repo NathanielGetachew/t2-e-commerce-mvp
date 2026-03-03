@@ -46,7 +46,7 @@ export const DEFAULT_SETTINGS: Record<string, { value: string; description: stri
         description: 'Days to hold commission before available for withdrawal',
     },
     [SettingKey.MAX_FILE_SIZE_MB]: {
-        value: '5',
+        value: '10',
         description: 'Maximum file upload size in megabytes',
     },
     [SettingKey.MAX_BULK_ORDER_QTY]: {

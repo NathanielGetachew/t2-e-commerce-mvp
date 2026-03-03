@@ -126,6 +126,68 @@ export async function getAdminAnalytics() {
     return response.data
 }
 
+/**
+ * Get all admin users (Super Admin only)
+ */
+export async function getAdmins() {
+    const user = await getUser()
+    if (!user || user.role !== 'SUPER_ADMIN') {
+        return { admins: [], error: 'Unauthorized' }
+    }
+
+    const response = await serverFetch('/auth/admins')
+
+    if (!response.success || !response.data) {
+        console.error('Failed to fetch admins:', response.error)
+        return { admins: [], error: response.error || 'Failed to fetch admins' }
+    }
+
+    return { admins: response.data.admins || [] }
+}
+
+/**
+ * Update an admin account (Super Admin only)
+ */
+export async function updateAdminAction(id: string, updates: { name?: string; email?: string }) {
+    const user = await getUser()
+    if (!user || user.role !== 'SUPER_ADMIN') {
+        return { error: 'Unauthorized' }
+    }
+
+    const response = await serverFetch(`/auth/admins/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+    })
+
+    if (!response.success) {
+        return { error: response.error || 'Failed to update admin' }
+    }
+
+    revalidatePath('/admin/admins')
+    return { success: true, admin: response.data?.admin }
+}
+
+/**
+ * Delete an admin account (Super Admin only)
+ */
+export async function deleteAdminAction(id: string) {
+    const user = await getUser()
+    if (!user || user.role !== 'SUPER_ADMIN') {
+        return { error: 'Unauthorized' }
+    }
+
+    const response = await serverFetch(`/auth/admins/${id}`, {
+        method: 'DELETE',
+    })
+
+    if (!response.success) {
+        return { error: response.error || 'Failed to delete admin' }
+    }
+
+    revalidatePath('/admin/admins')
+    return { success: true }
+}
+
 function getFallbackAnalytics() {
     return {
         revenueTrend: [

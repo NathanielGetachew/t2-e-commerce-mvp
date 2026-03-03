@@ -282,6 +282,60 @@ export class AuthService {
     }
 
     /**
+     * List all admin users (super admin only)
+     */
+    static async listAdmins(): Promise<UserResponse[]> {
+        const admins = await prisma.user.findMany({
+            where: { role: UserRole.ADMIN },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return admins.map((admin) => this.formatUser(admin));
+    }
+
+    /**
+     * Update an admin's name/email (super admin only)
+     */
+    static async updateAdmin(adminId: string, updates: { name?: string; email?: string }): Promise<UserResponse> {
+        const admin = await prisma.user.findUnique({ where: { id: adminId } });
+
+        if (!admin || admin.role !== UserRole.ADMIN) {
+            throw new Error('Admin not found');
+        }
+
+        if (updates.email && updates.email !== admin.email) {
+            const existing = await prisma.user.findFirst({ where: { email: updates.email } });
+            if (existing) {
+                throw new Error('Email is already in use');
+            }
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: adminId },
+            data: updates,
+        });
+
+        logger.info(`Admin updated: ${updated.email}`);
+        return this.formatUser(updated);
+    }
+
+    /**
+     * Delete an admin account (super admin only)
+     */
+    static async deleteAdmin(adminId: string): Promise<boolean> {
+        const admin = await prisma.user.findUnique({ where: { id: adminId } });
+
+        if (!admin || admin.role !== UserRole.ADMIN) {
+            throw new Error('Admin not found');
+        }
+
+        await prisma.user.delete({ where: { id: adminId } });
+
+        logger.info(`Admin deleted: ${admin.email}`);
+        return true;
+    }
+
+    /**
      * Format user response (remove sensitive data)
      */
     private static formatUser(user: any): UserResponse {

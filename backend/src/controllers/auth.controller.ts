@@ -189,4 +189,50 @@ export class AuthController {
             return ResponseHandler.error(res, error.message || 'Failed to create admin', 400);
         }
     }
+
+    /**
+     * GET /api/auth/admins
+     * List all admin users (Super Admin only)
+     */
+    static async listAdmins(_req: Request, res: Response): Promise<Response> {
+        try {
+            const admins = await AuthService.listAdmins();
+            return ResponseHandler.success(res, { admins }, 'Admins fetched successfully');
+        } catch (error: any) {
+            logger.error('List admins error:', error);
+            return ResponseHandler.error(res, error.message || 'Failed to fetch admins');
+        }
+    }
+
+    /**
+     * PATCH /api/auth/admins/:id
+     * Update an admin account (Super Admin only)
+     */
+    static async updateAdmin(req: Request, res: Response): Promise<Response> {
+        try {
+            const id = req.params.id as string;
+            const { name, email } = req.body;
+
+            const admin = await AuthService.updateAdmin(id, { name, email });
+            return ResponseHandler.success(res, { admin }, 'Admin updated successfully');
+        } catch (error: any) {
+            logger.error('Update admin error:', error);
+            return ResponseHandler.error(res, error.message || 'Failed to update admin', 400);
+        }
+    }
+
+    /**
+     * DELETE /api/auth/admins/:id
+     * Delete an admin account (Super Admin only)
+     */
+    static async deleteAdmin(req: Request, res: Response): Promise<Response> {
+        try {
+            const id = req.params.id as string;
+            await AuthService.deleteAdmin(id);
+            return ResponseHandler.success(res, null, 'Admin deleted successfully');
+        } catch (error: any) {
+            logger.error('Delete admin error:', error);
+            return ResponseHandler.error(res, error.message || 'Failed to delete admin', 400);
+        }
+    }
 }

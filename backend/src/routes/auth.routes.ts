@@ -3,7 +3,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { superAdminOnly } from '../middleware/authorize';
 import { validate } from '../middleware/validation';
-import { loginSchema, signupSchema, createAdminSchema, forgotPasswordSchema, resetPasswordSchema } from '../types/auth.types';
+import { loginSchema, signupSchema, createAdminSchema, forgotPasswordSchema, resetPasswordSchema, updateAdminSchema } from '../types/auth.types';
 
 const router = Router();
 
@@ -69,4 +69,26 @@ router.post(
     AuthController.createAdmin
 );
 
+/**
+ * @route   GET /api/auth/admins
+ * @desc    List all admin users
+ * @access  Super Admin only
+ */
+router.get('/admins', authenticate, superAdminOnly, AuthController.listAdmins);
+
+/**
+ * @route   PATCH /api/auth/admins/:id
+ * @desc    Update an admin account
+ * @access  Super Admin only
+ */
+router.patch('/admins/:id', authenticate, superAdminOnly, validate(updateAdminSchema), AuthController.updateAdmin);
+
+/**
+ * @route   DELETE /api/auth/admins/:id
+ * @desc    Delete an admin account
+ * @access  Super Admin only
+ */
+router.delete('/admins/:id', authenticate, superAdminOnly, AuthController.deleteAdmin);
+
 export default router;
+

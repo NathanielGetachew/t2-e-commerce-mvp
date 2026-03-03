@@ -67,7 +67,12 @@ export async function serverFetch<T = any>(
             let errorMessage = `HTTP error! status: ${response.status}`
             if (data?.error) {
                 if (typeof data.error === 'string') {
-                    errorMessage = data.error
+                    // Zod validation middleware returns: { error: 'Validation failed', details: [{field, message}] }
+                    if (data.details && Array.isArray(data.details) && data.details.length > 0) {
+                        errorMessage = data.details.map((d: any) => d.message || d).join('; ')
+                    } else {
+                        errorMessage = data.error
+                    }
                 } else if (data.error.message) {
                     errorMessage = data.error.message
                 }
