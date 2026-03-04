@@ -13,7 +13,7 @@ export default async function AdminDashboardPage() {
         redirect('/auth/login')
     }
 
-    const { orders, total } = await getAdminOrders(1, 10)
+    const { orders, total } = await getAdminOrders(1, 50)
     const analytics = await getAdminAnalytics()
 
     return (

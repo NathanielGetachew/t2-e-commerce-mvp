@@ -93,6 +93,7 @@ export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
                       src={item.product.image || "/placeholder.svg"}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg" }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">

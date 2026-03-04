@@ -33,6 +33,7 @@ export function Storefront({
   const { addToCart, wishlist, toggleWishlist } = useCart()
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault()
     e.stopPropagation()
     addToCart(product)
   }
@@ -179,16 +180,18 @@ export function Storefront({
                   </CardItem>
                 </div>
 
-                <CardItem translateZ="80" className="w-full mt-6">
-                  <Button
-                    className="w-full group-hover/card:bg-primary/90"
-                    onClick={(e) => handleAddToCart(e, product)}
-                    disabled={product.inStock === false}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {product.inStock === false ? "Out of Stock" : "Add to Cart"}
-                  </Button>
-                </CardItem>
+                <div className="relative z-20 mt-6" onClick={(e) => e.stopPropagation()}>
+                  <CardItem translateZ="80" className="w-full">
+                    <Button
+                      className="w-full group-hover/card:bg-primary/90"
+                      onClick={(e) => handleAddToCart(e, product)}
+                      disabled={product.inStock === false}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {product.inStock === false ? "Out of Stock" : "Add to Cart"}
+                    </Button>
+                  </CardItem>
+                </div>
               </CardBody>
             </CardContainer>
           )

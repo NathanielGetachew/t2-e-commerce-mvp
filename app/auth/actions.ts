@@ -60,11 +60,15 @@ export const getUser = cache(async (): Promise<User | null> => {
         })
 
         if (!response.ok) {
+            // Token is expired or invalid — remove the stale cookie so the
+            // next page load doesn't keep re-trying the same bad token.
+            try { cookieStore.delete('auth_token') } catch { }
             return null
         }
 
         const data = await response.json()
         if (!data.success || !data.data?.user) {
+            try { cookieStore.delete('auth_token') } catch { }
             return null
         }
 
@@ -77,6 +81,13 @@ export const getUser = cache(async (): Promise<User | null> => {
             role: user.role as UserRole,
             isAmbassador: user.isAmbassador || false,
             token,
+            // Ambassador / affiliate fields
+            ambassadorStatus: user.affiliateStatus || user.ambassadorStatus || undefined,
+            referralCode: user.referralCode || undefined,
+            customCode: user.customCode || undefined,
+            commissionRate: user.commissionRate || undefined,
+            totalEarnings: user.totalEarnings || undefined,
+            metrics: user.metrics || undefined,
         }
     } catch (error) {
         console.error('[getUser] Failed to validate token:', error)

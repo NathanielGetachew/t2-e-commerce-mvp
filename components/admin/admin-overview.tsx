@@ -83,7 +83,7 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
         setIsRefreshing(true)
         try {
             const [{ orders: newOrders, total }, newAnalytics] = await Promise.all([
-                getAdminOrders(1, 20),
+                getAdminOrders(1, 50),
                 getAdminAnalytics(),
             ])
             setOrders(newOrders)
@@ -125,10 +125,9 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
         return () => clearInterval(id)
     }, [refreshData])
 
-    // Derived stats
-    const totalRevenue = analytics?.revenueTrend
-        ? analytics.revenueTrend.reduce((acc: number, curr: any) => acc + curr.revenue, 0)
-        : 0
+    // Derived stats — compute revenue from ACTUAL order totals (not the
+    // analytics revenueTrend which may contain mock/sample data).
+    const totalRevenue = orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0)
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
     const statusDistribution = Object.entries(
@@ -402,7 +401,7 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
                         <CardTitle>Recent Orders</CardTitle>
                         <CardDescription>Manage and track individual order statuses</CardDescription>
                     </div>
-                    <Badge variant="outline" className="font-mono">{orders.length} shown</Badge>
+                    <Badge variant="outline" className="font-mono">{orders.length} shown / {totalOrders} total</Badge>
                 </CardHeader>
                 <CardContent>
                     {orders.length === 0 ? (
