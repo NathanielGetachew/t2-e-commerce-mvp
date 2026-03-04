@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic'
 export default async function AdminAmbassadorsPage() {
     const user = await getUser()
 
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-        redirect('/')
+    if (!user || user.role !== 'SUPER_ADMIN') {
+        redirect(user ? '/admin/dashboard' : '/')
     }
 
     return (

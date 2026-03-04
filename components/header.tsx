@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Menu, X, ShoppingCart, LogOut, User as UserIcon, Users } from "lucide-react"
+import { Menu, X, ShoppingCart, LogOut, User as UserIcon, Users, Clock, Star } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
@@ -215,19 +215,51 @@ function UserNav({ user, isAdmin, cartCount, onCartClick }: {
         )}
       </Button>
 
-      {!isAdmin && (
-        <Link href="/dashboard/ambassador">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
-            title="Be an Ambassador"
-          >
-            <Users className="h-4 w-4" />
-            <span>Be an Ambassador</span>
-          </Button>
-        </Link>
-      )}
+      {!isAdmin && (() => {
+        const status = user.ambassadorStatus
+        if (status === 'approved' || user.isAmbassador) {
+          return (
+            <Link href="/dashboard/ambassador">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex items-center gap-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950"
+              >
+                <Star className="h-4 w-4" />
+                <span>My Ambassador</span>
+              </Button>
+            </Link>
+          )
+        }
+        if (status === 'pending') {
+          return (
+            <Link href="/dashboard/ambassador">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden md:flex items-center gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950"
+              >
+                <Clock className="h-4 w-4" />
+                <span>Application Pending</span>
+              </Button>
+            </Link>
+          )
+        }
+        // No status or rejected: show the CTA
+        return (
+          <Link href="/dashboard/ambassador">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
+              title="Be an Ambassador"
+            >
+              <Users className="h-4 w-4" />
+              <span>Be an Ambassador</span>
+            </Button>
+          </Link>
+        )
+      })()}
 
       <Button variant="ghost" size="icon" onClick={performSignOut} title="Sign Out">
         <LogOut className="h-5 w-5" />
@@ -243,14 +275,37 @@ function MobileUserNav({ user, isAdmin, onMenuClose }: {
 }) {
   return (
     <>
-      {!isAdmin && (
-        <Link href="/dashboard/ambassador" onClick={onMenuClose}>
-          <Button variant="ghost" className="justify-start w-full">
-            <Users className="mr-2 h-4 w-4" />
-            Be an Ambassador
-          </Button>
-        </Link>
-      )}
+      {!isAdmin && (() => {
+        const status = user.ambassadorStatus
+        if (status === 'approved' || user.isAmbassador) {
+          return (
+            <Link href="/dashboard/ambassador" onClick={onMenuClose}>
+              <Button variant="ghost" className="justify-start w-full text-emerald-600">
+                <Star className="mr-2 h-4 w-4" />
+                My Ambassador Dashboard
+              </Button>
+            </Link>
+          )
+        }
+        if (status === 'pending') {
+          return (
+            <Link href="/dashboard/ambassador" onClick={onMenuClose}>
+              <Button variant="ghost" className="justify-start w-full text-amber-600">
+                <Clock className="mr-2 h-4 w-4" />
+                Application Under Review
+              </Button>
+            </Link>
+          )
+        }
+        return (
+          <Link href="/dashboard/ambassador" onClick={onMenuClose}>
+            <Button variant="ghost" className="justify-start w-full">
+              <Users className="mr-2 h-4 w-4" />
+              Be an Ambassador
+            </Button>
+          </Link>
+        )
+      })()}
       <Button
         variant="ghost"
         onClick={() => {

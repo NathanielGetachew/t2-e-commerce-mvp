@@ -70,15 +70,17 @@ export function AdminSidebar({ currentView, user }: AdminSidebarProps) {
                         Supply Chain
                     </Button>
                 </Link>
-                <Link href="/admin/ambassadors">
-                    <Button
-                        variant={isActive('/admin/ambassadors') ? 'secondary' : 'ghost'}
-                        className={cn("justify-start gap-2 w-full", isActive('/admin/ambassadors') && "font-semibold")}
-                    >
-                        <Users className="h-4 w-4" />
-                        Ambassadors
-                    </Button>
-                </Link>
+                {user?.role === 'SUPER_ADMIN' && (
+                    <Link href="/admin/ambassadors">
+                        <Button
+                            variant={isActive('/admin/ambassadors') ? 'secondary' : 'ghost'}
+                            className={cn("justify-start gap-2 w-full", isActive('/admin/ambassadors') && "font-semibold")}
+                        >
+                            <Users className="h-4 w-4" />
+                            Ambassadors
+                        </Button>
+                    </Link>
+                )}
                 {user?.role === 'SUPER_ADMIN' && (
                     <Link href="/admin/admins">
                         <Button
