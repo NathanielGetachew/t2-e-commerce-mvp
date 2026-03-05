@@ -1,5 +1,5 @@
 "use server"
-import { UserRole } from "@prisma/client"
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "CUSTOMER"
 import { cookies } from "next/headers"
 import { serverFetch } from "@/lib/server-api"
 import { cache } from "react"
