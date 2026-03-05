@@ -156,4 +156,34 @@ export class AdminController {
             return ResponseHandler.error(res, 'Failed to get analytics');
         }
     }
+
+    /**
+     * GET /api/admin/security/risks
+     */
+    static async getSecurityRisks(_req: Request, res: Response): Promise<Response> {
+        try {
+            const risks = await AdminService.getSecurityRisks();
+            return ResponseHandler.success(res, { risks });
+        } catch (error: any) {
+            logger.error('Get security risks error:', error);
+            return ResponseHandler.error(res, 'Failed to get security risks');
+        }
+    }
+
+    /**
+     * POST /api/admin/security/block
+     */
+    static async toggleBlock(req: Request, res: Response): Promise<Response> {
+        try {
+            const { userId, isBlocked } = req.body;
+            if (!userId || typeof isBlocked !== 'boolean') {
+                return ResponseHandler.error(res, 'Invalid parameters', 400);
+            }
+            const user = await AdminService.toggleUserBlock(userId, isBlocked);
+            return ResponseHandler.success(res, { user });
+        } catch (error: any) {
+            logger.error('Toggle block error:', error);
+            return ResponseHandler.error(res, 'Failed to toggle block status');
+        }
+    }
 }

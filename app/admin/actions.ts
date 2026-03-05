@@ -210,3 +210,44 @@ function getFallbackAnalytics() {
         }
     }
 }
+
+/**
+ * Get users with security risks (Admin only)
+ */
+export async function getSecurityRisksAction() {
+    const user = await getUser()
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+        return { risks: [], error: 'Unauthorized' }
+    }
+
+    const response = await serverFetch('/admin/security/risks')
+
+    if (!response.success || !response.data) {
+        console.error('Failed to fetch security risks:', response.error)
+        return { risks: [], error: response.error || 'Failed to fetch risks' }
+    }
+
+    return { risks: response.data.risks || [] }
+}
+
+/**
+ * Toggle block status for a user (Admin only)
+ */
+export async function toggleUserBlockAction(userId: string, isBlocked: boolean) {
+    const user = await getUser()
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+        return { error: 'Unauthorized' }
+    }
+
+    const response = await serverFetch('/admin/security/block', {
+        method: 'POST',
+        body: JSON.stringify({ userId, isBlocked }),
+    })
+
+    if (!response.success) {
+        return { error: response.error || 'Failed to update block status' }
+    }
+
+    revalidatePath('/admin/security')
+    return { success: true }
+}

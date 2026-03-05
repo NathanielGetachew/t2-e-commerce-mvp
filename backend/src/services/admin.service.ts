@@ -442,4 +442,47 @@ export class AdminService {
                 return monthA - monthB;
             });
     }
+
+    /**
+     * Get users with security risks (failed logins > 10 or blocked)
+     */
+    static async getSecurityRisks(): Promise<any[]> {
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { totalFailedLoginAttempts: { gte: 10 } },
+                    { isBlocked: true },
+                    { lockedUntil: { gt: new Date() } }
+                ],
+                role: 'CUSTOMER' // Primarily focusing on customers, but can expand
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                failedLoginAttempts: true,
+                totalFailedLoginAttempts: true,
+                lockedUntil: true,
+                isBlocked: true,
+                createdAt: true,
+            },
+            orderBy: { totalFailedLoginAttempts: 'desc' },
+        });
+
+        return users;
+    }
+
+    /**
+     * Block or unblock a user
+     */
+    static async toggleUserBlock(userId: string, isBlocked: boolean): Promise<any> {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: { isBlocked },
+            select: { id: true, email: true, isBlocked: true }
+        });
+
+        logger.info(`User ${user.email} block status changed to ${isBlocked}`);
+        return user;
+    }
 }

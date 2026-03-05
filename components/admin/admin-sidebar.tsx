@@ -96,6 +96,15 @@ export function AdminSidebar({ currentView, user }: AdminSidebarProps) {
             </nav>
 
             <div className="flex flex-col gap-2">
+                <Link href="/admin/security">
+                    <Button
+                        variant={isActive('/admin/security') ? 'secondary' : 'ghost'}
+                        className={cn("justify-start gap-2 w-full", isActive('/admin/security') && "font-semibold")}
+                    >
+                        <ShieldCheck className="h-4 w-4" />
+                        Security Settings
+                    </Button>
+                </Link>
                 <Button variant="ghost" className="justify-start gap-2">
                     <Settings className="h-4 w-4" />
                     Settings

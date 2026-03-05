@@ -67,4 +67,18 @@ router.patch(
  */
 router.get('/analytics', AdminController.getAnalytics);
 
+/**
+ * @route   GET /api/admin/security/risks
+ * @desc    Get users with security risks
+ * @access  Admin only
+ */
+router.get('/security/risks', AdminController.getSecurityRisks);
+
+/**
+ * @route   POST /api/admin/security/block
+ * @desc    Toggle block status of a user
+ * @access  Admin only
+ */
+router.post('/security/block', AdminController.toggleBlock);
+
 export default router;
