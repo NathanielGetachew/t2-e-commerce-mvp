@@ -83,7 +83,7 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
         setIsRefreshing(true)
         try {
             const [{ orders: newOrders, total }, newAnalytics] = await Promise.all([
-                getAdminOrders(1, 50),
+                getAdminOrders(1, 100),
                 getAdminAnalytics(),
             ])
             setOrders(newOrders)
@@ -362,7 +362,7 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
             {user?.role === "SUPER_ADMIN" && analytics?.topProducts?.length > 0 && (
                 <Card className="shadow-sm">
                     <CardHeader>
-                        <CardTitle>Top Performing Inventory</CardTitle>
+                        <CardTitle>Top Performing Products</CardTitle>
                         <CardDescription>Detailed breakdown of high-velocity items</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -382,9 +382,9 @@ export function AdminOverview({ orders: initialOrders, totalOrders: initialTotal
                                         <TableCell className="text-muted-foreground font-mono">{i + 1}</TableCell>
                                         <TableCell className="font-medium">{product.name}</TableCell>
                                         <TableCell className="text-right tabular-nums">{product.sales}</TableCell>
-                                        <TableCell className="text-right font-bold text-emerald-600 tabular-nums">{product.revenue.toLocaleString()} ETB</TableCell>
+                                        <TableCell className="text-right font-bold text-emerald-600 tabular-nums">{(product.revenue / 100).toLocaleString()} ETB</TableCell>
                                         <TableCell className="text-right text-muted-foreground tabular-nums">
-                                            {product.sales > 0 ? Math.round(product.revenue / product.sales).toLocaleString() : 0} ETB
+                                            {product.sales > 0 ? Math.round((product.revenue / 100) / product.sales).toLocaleString() : 0} ETB
                                         </TableCell>
                                     </TableRow>
                                 ))}

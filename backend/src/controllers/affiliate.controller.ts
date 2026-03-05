@@ -123,6 +123,31 @@ export class AffiliateController {
     }
 
     /**
+     * POST /api/affiliates/track-click
+     * Track a click from a referral link
+     */
+    static async trackClick(req: Request, res: Response): Promise<Response> {
+        try {
+            const { code } = req.body;
+
+            // Extract tracking info
+            const ipAddress = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0];
+            const userAgent = (req.headers['user-agent'] || '').toString();
+
+            await AffiliateService.trackReferralClick(code, {
+                ipAddress,
+                userAgent
+            });
+
+            return ResponseHandler.success(res, null, 'Click tracked');
+        } catch (error: any) {
+            // We don't want to alert the user if tracking fails, just log it.
+            logger.error('Track click error:', error);
+            return ResponseHandler.success(res, null, 'Ignored');
+        }
+    }
+
+    /**
      * GET /api/affiliates/stats
      * Get referral stats for current ambassador
      */

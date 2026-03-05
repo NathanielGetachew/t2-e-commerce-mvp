@@ -31,6 +31,13 @@ router.post(
 router.post('/validate', validate(referralCodeSchema), AffiliateController.validateCode);
 
 /**
+ * @route   POST /api/affiliates/track-click
+ * @desc    Track a referral code click
+ * @access  Public
+ */
+router.post('/track-click', validate(referralCodeSchema), AffiliateController.trackClick);
+
+/**
  * @route   GET /api/affiliates/stats
  * @desc    Get referral stats for current ambassador
  * @access  Private (ambassadors only)

@@ -101,9 +101,10 @@ export async function updateCustomCode(userId: string, newCode: string) {
  * Track a referral click
  */
 export async function trackReferralClick(code: string) {
-    const response = await serverFetch('/affiliate/track-click', {
+    const response = await serverFetch('/affiliates/track-click', {
         method: 'POST',
         body: JSON.stringify({ code }),
+        // Don't throw errors for tracking
     })
 
     return { success: response.success }

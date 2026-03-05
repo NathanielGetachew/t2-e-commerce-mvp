@@ -12,6 +12,8 @@ export interface UserResponse {
     fullName: string | null;
     role: UserRole;
     isAmbassador: boolean;
+    ambassadorStatus?: string;
+    ambassadorCode?: string | null;
 }
 
 export class AuthService {
@@ -55,6 +57,12 @@ export class AuthService {
                 isEmailVerified: false,
                 verificationToken,
             },
+            include: {
+                ambassadorApplications: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
+            },
         });
 
         // Send Verification Email
@@ -88,10 +96,22 @@ export class AuthService {
         // Find user by email
         const user = await prisma.user.findFirst({
             where: { email },
+            include: {
+                ambassadorApplications: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
+            },
         });
 
         if (!user) {
             throw new Error('Invalid email or password');
+        }
+
+        // Check if account is locked
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+            const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+            throw new Error(`Account is temporarily locked due to multiple failed login attempts. Try again in ${minutesLeft} minutes.`);
         }
 
         // Verify password
@@ -100,8 +120,32 @@ export class AuthService {
         }
 
         const isPasswordValid = await PasswordService.compare(password, user.password);
+
         if (!isPasswordValid) {
+            // Increment failed login tracking
+            const attempts = user.failedLoginAttempts + 1;
+            const updateData: any = { failedLoginAttempts: attempts };
+
+            if (attempts >= 5) {
+                // Lock account for 15 minutes
+                updateData.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+                logger.warn(`Account locked due to brute force attempt: ${user.email}`);
+            }
+
+            await prisma.user.update({
+                where: { id: user.id },
+                data: updateData
+            });
+
             throw new Error('Invalid email or password');
+        }
+
+        // Reset failed attempts on successful login
+        if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { failedLoginAttempts: 0, lockedUntil: null }
+            });
         }
 
         if (!user.isEmailVerified) {
@@ -130,6 +174,12 @@ export class AuthService {
     static async getUserById(userId: string): Promise<UserResponse | null> {
         const user = await prisma.user.findUnique({
             where: { id: userId },
+            include: {
+                ambassadorApplications: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
+            },
         });
 
         if (!user) {
@@ -339,12 +389,15 @@ export class AuthService {
      * Format user response (remove sensitive data)
      */
     private static formatUser(user: any): UserResponse {
+        const latestApp = user.ambassadorApplications?.[0];
         return {
             id: user.id,
             email: user.email,
             fullName: user.name,
             role: user.role,
             isAmbassador: user.isAmbassador || false,
+            ambassadorStatus: latestApp?.status,
+            ambassadorCode: user.ambassadorCode,
         };
     }
 }

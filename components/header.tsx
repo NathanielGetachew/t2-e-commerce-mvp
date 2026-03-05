@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Menu, X, ShoppingCart, LogOut, User as UserIcon, Users, Clock, Star } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -44,8 +45,8 @@ export function Header({ cartCount: propCartCount, onCartClick, user, isAdmin }:
 
   const navItems = [
     { href: "/", label: "Home", visible: true },
-    { href: "/shop", label: "Shop", visible: !isAdmin },
-    { href: "/track", label: "Track Order", visible: !isAdmin },
+    { href: "/shop", label: "Shop", visible: true },
+    { href: "/track", label: "Track Order", visible: true },
     { href: "/admin/dashboard", label: "Admin", visible: isAdmin },
   ].filter((item) => item.visible)
 
@@ -60,13 +61,10 @@ export function Header({ cartCount: propCartCount, onCartClick, user, isAdmin }:
       )}
     >
       <div className="container mx-auto max-w-7xl px-4">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className={cn(
-              "font-bold text-2xl px-3 py-1.5 rounded-lg group-hover:scale-105 transition-transform shadow-md",
-              (isScrolled || !isHome || !useTransparentHomeStyle) ? "bg-primary text-primary-foreground" : "bg-white text-black"
-            )}>
-              {"T2"}
+            <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl group-hover:scale-105 transition-transform shadow-sm border bg-white">
+              <Image src="/T2-logo.png" alt="T2 Logo" fill className="object-cover" priority />
             </div>
             <span className={cn(
               "text-sm font-medium hidden sm:inline",

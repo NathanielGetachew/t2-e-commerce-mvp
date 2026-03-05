@@ -75,7 +75,7 @@ class App {
         // Stricter rate limiting for auth endpoints (prevent brute force)
         const authLimiter = rateLimit({
             windowMs: 15 * 60 * 1000, // 15 minutes
-            max: 20, // 20 attempts per 15 min
+            max: 100, // 100 attempts per 15 min
             message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many authentication attempts, please try again later.' } },
             standardHeaders: true,
             legacyHeaders: false,
@@ -86,7 +86,7 @@ class App {
         // Stricter rate limiting for webhook endpoints
         const webhookLimiter = rateLimit({
             windowMs: 60 * 1000, // 1 minute
-            max: 30, // 30 per minute
+            max: 100, // 100 per minute
             message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many webhook requests.' } },
             standardHeaders: true,
             legacyHeaders: false,

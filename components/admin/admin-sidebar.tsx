@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, Package, Tag, LogOut, Settings, Truck, Users, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 interface AdminSidebarProps {
     currentView?: 'overview' | 'inventory' | 'coupons' | 'supply_chain' | 'ambassadors' | 'admins'
@@ -26,11 +27,11 @@ export function AdminSidebar({ currentView, user }: AdminSidebarProps) {
 
     return (
         <div className="w-64 border-r bg-card min-h-screen p-4 flex flex-col gap-8">
-            <div className="flex items-center gap-2 px-2">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                    <span className="text-primary-foreground font-bold">T2</span>
+            <div className="flex items-center gap-3 px-2 mb-4">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-white border shadow-sm flex-shrink-0">
+                    <Image src="/T2-logo.png" alt="T2 Logo" fill className="object-cover" priority />
                 </div>
-                <span className="font-bold text-xl">Admin</span>
+                <span className="font-bold text-2xl">Admin</span>
             </div>
 
             <nav className="flex flex-col gap-2 flex-1">

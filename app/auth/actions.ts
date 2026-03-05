@@ -134,7 +134,7 @@ export async function signIn(data: { email: string; password: string }) {
         // This is the KEY step: it bridges backend JWT → browser cookie.
         const cookieStore = await cookies()
         cookieStore.set('auth_token', token, {
-            httpOnly: false,      // Must be false so client JS can also read it
+            httpOnly: true,       // MUST be true to prevent XSS attacks reading the JWT via document.cookie
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',

@@ -257,6 +257,33 @@ export class AffiliateService {
     }
 
     /**
+     * Track a click on a referral link
+     */
+    static async trackReferralClick(code: string, meta: { ipAddress?: string; userAgent?: string }): Promise<void> {
+        // Try to find if this code belongs to an ambassador
+        const ambassador = await prisma.user.findFirst({
+            where: {
+                ambassadorCode: code,
+                isAmbassador: true,
+            },
+        });
+
+        // Record the click, whether the code is valid or not yet valid
+        await prisma.referralClick.create({
+            data: {
+                ambassadorCode: code,
+                ambassadorId: ambassador ? ambassador.id : null,
+                ipAddress: meta.ipAddress,
+                userAgent: meta.userAgent?.substring(0, 255), // truncate if too long
+            }
+        });
+
+        if (ambassador) {
+            logger.info(`Recorded referral click for ambassador ${ambassador.id} (code: ${code})`);
+        }
+    }
+
+    /**
      * Record commission when an order is placed
      * Commission starts as PENDING and will be made available after 14 days
      */
@@ -361,6 +388,11 @@ export class AffiliateService {
             return sum + (ref.commissionCents * 10000 / user.commissionRateBp);
         }, 0);
 
+        // Get actual click count
+        const totalClicks = await prisma.referralClick.count({
+            where: { ambassadorId: userId }
+        });
+
         return {
             ambassadorCode: user.ambassadorCode,
             commissionRateBp: user.commissionRateBp,
@@ -368,7 +400,7 @@ export class AffiliateService {
             pendingEarnings: pendingCommissionCents,
             availableForWithdrawal: availableCommissionCents,
             metrics: {
-                clicks: 0, // Would need separate click tracking table
+                clicks: totalClicks,
                 conversions: totalOrders,
                 revenueGenerated: totalRevenueCents,
             },

@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -28,9 +29,9 @@ export default function Page() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <Link href="/" className="mx-auto">
-            <div className="bg-primary text-primary-foreground font-bold text-2xl px-3 py-1.5 rounded-lg shadow-md transition-transform hover:scale-105">
-              {"T2"}
+          <Link href="/" className="mx-auto mb-2">
+            <div className="relative h-24 w-24 overflow-hidden rounded-2xl shadow-sm border bg-white transition-transform hover:scale-105">
+              <Image src="/T2-logo.png" alt="T2 Logo" fill className="object-cover" priority />
             </div>
           </Link>
           <Card className="animate-in fade-in zoom-in duration-500">
