@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "scripts": {
         "dev": "nodemon --watch src --exec ts-node src/index.ts",
-        "build": "tsc",
+        "build": "prisma generate && prisma migrate deploy && tsc",
         "start": "node dist/index.js",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
@@ -48,6 +48,7 @@
         "jsonwebtoken": "^9.0.2",
         "multer": "^1.4.5-lts.1",
         "nodemailer": "^8.0.1",
+        "prisma": "^7.4.2",
         "tough-cookie": "^6.0.0",
         "typescript": "^5.9.3",
         "uuid": "^11.0.5",
@@ -59,7 +60,6 @@
         "@types/jest": "^29.5.14",
         "jest": "^29.7.0",
         "nodemon": "^3.1.9",
-        "prisma": "^5.20.0",
         "supertest": "^7.0.0",
         "ts-jest": "^29.2.5",
         "ts-node": "^10.9.2"
