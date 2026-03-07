@@ -13,7 +13,7 @@
  */
 import { cookies } from 'next/headers'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://t2-e-commerce-mvp.onrender.com/api'
 
 export interface ServerApiResponse<T = any> {
     success: boolean
