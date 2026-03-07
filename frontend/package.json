@@ -52,7 +52,7 @@
     "input-otp": "^1.4.2",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.454.0",
-    "next": "15.1.0",
+    "next": "^15.5.12",
     "next-themes": "^0.3.0",
     "react": "^19.0.0-rc",
     "react-day-picker": "^9.13.0",
