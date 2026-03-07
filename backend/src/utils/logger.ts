@@ -38,13 +38,10 @@ export const logger = winston.createLogger({
     ],
 });
 
-// Console logging in development
-if (config.nodeEnv !== 'production') {
-    logger.add(
-        new winston.transports.Console({
-            format: consoleFormat,
-        })
-    );
-}
+logger.add(
+    new winston.transports.Console({
+        format: consoleFormat,
+    })
+);
 
 export default logger;
