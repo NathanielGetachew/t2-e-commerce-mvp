@@ -17,6 +17,9 @@ class App {
 
     constructor() {
         this.app = express();
+        // Trust first proxy (Render's reverse proxy) so express-rate-limit
+        // can read the real client IP from X-Forwarded-For
+        this.app.set('trust proxy', 1);
         this.initializeMiddlewares();
         this.initializeRoutes();
         this.initializeErrorHandling();

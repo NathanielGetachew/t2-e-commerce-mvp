@@ -36,8 +36,9 @@ export class EmailService {
         const smtpHostname = process.env.SMTP_HOST || 'smtp.gmail.com';
         const resolvedHost = await resolveIPv4(smtpHostname);
 
-        const port = parseInt(process.env.SMTP_PORT || '465');
-        const secure = process.env.SMTP_SECURE === 'true'; // true = SSL/465, false = STARTTLS/587
+        const port = parseInt(process.env.SMTP_PORT || '587');
+        // Port 465 = implicit SSL (secure=true), Port 587 = STARTTLS (secure=false)
+        const secure = port === 465;
 
         // Strip surrounding quotes from SMTP_FROM if present (dotenv quirk)
         const rawFrom = process.env.SMTP_FROM || '"T2 E-commerce" <noreply@t2-ecommerce.com>';
@@ -56,6 +57,9 @@ export class EmailService {
                 servername: smtpHostname,
                 rejectUnauthorized: false,
             },
+            connectionTimeout: 10000, // 10s connection timeout
+            greetingTimeout: 10000,   // 10s greeting timeout
+            socketTimeout: 15000,     // 15s socket timeout
         } as any;
 
         logger.info(`Creating SMTP transporter: host=${resolvedHost} port=${port} secure=${secure} user=${process.env.SMTP_USER}`);
