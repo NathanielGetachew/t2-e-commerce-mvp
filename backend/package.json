@@ -23,7 +23,7 @@
     "author": "",
     "license": "MIT",
     "dependencies": {
-        "@prisma/client": "^5.20.0",
+        "@prisma/client": "^5.22.0",
         "@types/bcryptjs": "^2.4.6",
         "@types/compression": "^1.8.1",
         "@types/cookie-parser": "^1.4.10",
@@ -48,7 +48,7 @@
         "jsonwebtoken": "^9.0.2",
         "multer": "^1.4.5-lts.1",
         "nodemailer": "^8.0.1",
-        "prisma": "^7.4.2",
+        "prisma": "^5.22.0",
         "tough-cookie": "^6.0.0",
         "typescript": "^5.9.3",
         "uuid": "^11.0.5",
