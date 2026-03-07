@@ -79,7 +79,21 @@ export class EmailService {
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
             const verificationLink = `${frontendUrl}/auth/verify-email?token=${token}`;
 
+            logger.info(`[Email] Preparing verification email to ${email}, frontendUrl=${frontendUrl}`);
+            logger.info(`[Email] Verification link: ${verificationLink}`);
+
             const transporter = await this.ensureTransporter();
+
+            // Verify SMTP connection is alive
+            try {
+                await transporter.verify();
+                logger.info('[Email] SMTP connection verified successfully');
+            } catch (verifyErr: any) {
+                logger.error(`[Email] SMTP verify failed: ${verifyErr.message}`, {
+                    code: verifyErr.code,
+                    command: verifyErr.command,
+                });
+            }
             const from = (transporter as any)._smtpFrom || '"T2 E-commerce" <noreply@t2-ecommerce.com>';
 
             const mailOptions = {
