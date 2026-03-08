@@ -12,8 +12,8 @@ if (apiKey) {
     logger.warn('RESEND_API_KEY is missing. Emails will be logged to console instead of sent.');
 }
 
-// Fallback to a placeholder sender if SMTP_FROM isn't set
-const FROM_EMAIL = process.env.SMTP_FROM || 'T2 E-commerce <onboarding@resend.dev>';
+// Always use Resend's testing domain unless the user has verified a custom domain
+const FROM_EMAIL = 'T2 E-commerce <onboarding@resend.dev>';
 
 export class EmailService {
     /**
