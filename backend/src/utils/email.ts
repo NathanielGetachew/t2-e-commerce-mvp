@@ -1,80 +1,21 @@
-import nodemailer from 'nodemailer';
-import dns from 'dns';
+import { Resend } from 'resend';
 import { logger } from './logger';
 
-/**
- * Resolves a hostname to its first IPv4 address.
- * Falls back to the original hostname if resolution fails.
- */
-function resolveIPv4(hostname: string): Promise<string> {
-    return new Promise((resolve) => {
-        dns.lookup(hostname, { family: 4 }, (err, address) => {
-            if (err) {
-                logger.warn(`dns.lookup IPv4 failed for ${hostname}, using hostname as-is: ${err.message}`);
-                resolve(hostname);
-            } else {
-                logger.info(`Resolved SMTP host ${hostname} → ${address} (IPv4)`);
-                resolve(address);
-            }
-        });
-    });
+// Initialize Resend conditionally so the app doesn't crash if the key is missing
+let resend: Resend | null = null;
+const apiKey = process.env.RESEND_API_KEY;
+
+if (apiKey) {
+    resend = new Resend(apiKey);
+    logger.info('Resend email service initialized');
+} else {
+    logger.warn('RESEND_API_KEY is missing. Emails will be logged to console instead of sent.');
 }
 
+// Fallback to a placeholder sender if SMTP_FROM isn't set
+const FROM_EMAIL = process.env.SMTP_FROM || 'T2 E-commerce <onboarding@resend.dev>';
+
 export class EmailService {
-    private static _transporter: nodemailer.Transporter | null = null;
-
-    /**
-     * Creates the transporter, pre-resolving SMTP host to IPv4 to avoid
-     * ENETUNREACH errors on hosts where IPv6 is not routable.
-     *
-     * The transporter singleton is cleared on send failure so that a bad
-     * credential or network error does not permanently poison the cached instance.
-     */
-    static async ensureTransporter(): Promise<nodemailer.Transporter> {
-        if (this._transporter) return this._transporter;
-
-        const smtpHostname = process.env.SMTP_HOST || 'smtp.gmail.com';
-        const resolvedHost = await resolveIPv4(smtpHostname);
-
-        const port = parseInt(process.env.SMTP_PORT || '587');
-        // Port 465 = implicit SSL (secure=true), Port 587 = STARTTLS (secure=false)
-        const secure = port === 465;
-
-        // Strip surrounding quotes from SMTP_FROM if present (dotenv quirk)
-        const rawFrom = process.env.SMTP_FROM || '"T2 E-commerce" <noreply@t2-ecommerce.com>';
-        const smtpFrom = rawFrom.replace(/^['"]|['"]$/g, '');
-
-        const config: nodemailer.TransportOptions = {
-            host: resolvedHost,
-            port,
-            secure,
-            auth: {
-                user: process.env.SMTP_USER || '',
-                pass: process.env.SMTP_PASS || '',
-            },
-            tls: {
-                // servername is required when host is an IP — used for TLS SNI
-                servername: smtpHostname,
-                rejectUnauthorized: false,
-            },
-            connectionTimeout: 10000, // 10s connection timeout
-            greetingTimeout: 10000,   // 10s greeting timeout
-            socketTimeout: 15000,     // 15s socket timeout
-        } as any;
-
-        logger.info(`Creating SMTP transporter: host=${resolvedHost} port=${port} secure=${secure} user=${process.env.SMTP_USER}`);
-
-        this._transporter = nodemailer.createTransport(config);
-        // Attach from address so it's accessible for diagnostics
-        (this._transporter as any)._smtpFrom = smtpFrom;
-        return this._transporter;
-    }
-
-    /** Clears the cached transporter so it gets recreated on next use */
-    private static clearTransporter() {
-        this._transporter = null;
-    }
-
     /**
      * Send email verification link
      */
@@ -86,23 +27,14 @@ export class EmailService {
             logger.info(`[Email] Preparing verification email to ${email}, frontendUrl=${frontendUrl}`);
             logger.info(`[Email] Verification link: ${verificationLink}`);
 
-            const transporter = await this.ensureTransporter();
-
-            // Verify SMTP connection is alive
-            try {
-                await transporter.verify();
-                logger.info('[Email] SMTP connection verified successfully');
-            } catch (verifyErr: any) {
-                logger.error(`[Email] SMTP verify failed: ${verifyErr.message}`, {
-                    code: verifyErr.code,
-                    command: verifyErr.command,
-                });
+            if (!resend) {
+                logger.warn(`[Email-DevMode] Would send verification to ${email} -> ${verificationLink}`);
+                return true;
             }
-            const from = (transporter as any)._smtpFrom || '"T2 E-commerce" <noreply@t2-ecommerce.com>';
 
-            const mailOptions = {
-                from,
-                to: email,
+            const { data, error } = await resend.emails.send({
+                from: FROM_EMAIL,
+                to: [email],
                 subject: 'Verify your email address - T2 E-commerce',
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -121,20 +53,18 @@ export class EmailService {
                         <p>Best regards,<br>The T2 E-commerce Team</p>
                     </div>
                 `,
-            };
+            });
 
-            const info = await transporter.sendMail(mailOptions);
-            logger.info(`Verification email sent to ${email} (Message ID: ${info.messageId})`);
+            if (error) {
+                logger.error(`[Email] Resend API error for ${email}: ${error.message}`, { error });
+                return false;
+            }
+
+            logger.info(`[Email] Verification email sent to ${email} (ID: ${data?.id})`);
             return true;
         } catch (error: any) {
-            // Clear the cached transporter so a fresh one is created on the next attempt.
-            // This prevents a bad credential or transient failure from permanently
-            // poisoning the singleton.
-            this.clearTransporter();
-            logger.error(`Failed to send verification email to ${email}: ${error.message}`, {
-                code: error.code,
-                command: error.command,
-                response: error.response,
+            logger.error(`[Email] Failed to send verification email to ${email}: ${error.message}`, {
+                stack: error.stack,
             });
             return false;
         }
@@ -148,12 +78,16 @@ export class EmailService {
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
             const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
 
-            const transporter = await this.ensureTransporter();
-            const from = (transporter as any)._smtpFrom || '"T2 E-commerce" <noreply@t2-ecommerce.com>';
+            logger.info(`[Email] Preparing password reset email to ${email}`);
 
-            const mailOptions = {
-                from,
-                to: email,
+            if (!resend) {
+                logger.warn(`[Email-DevMode] Would send reset password to ${email} -> ${resetLink}`);
+                return true;
+            }
+
+            const { data, error } = await resend.emails.send({
+                from: FROM_EMAIL,
+                to: [email],
                 subject: 'Reset your password - T2 E-commerce',
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -173,18 +107,18 @@ export class EmailService {
                         <p>Best regards,<br>The T2 E-commerce Team</p>
                     </div>
                 `,
-            };
+            });
 
-            const info = await transporter.sendMail(mailOptions);
-            logger.info(`Password reset email sent to ${email} (Message ID: ${info.messageId})`);
+            if (error) {
+                logger.error(`[Email] Resend API error for ${email}: ${error.message}`, { error });
+                return false;
+            }
+
+            logger.info(`[Email] Password reset email sent to ${email} (ID: ${data?.id})`);
             return true;
         } catch (error: any) {
-            // Clear the cached transporter so a fresh one is created on the next attempt
-            this.clearTransporter();
-            logger.error(`Failed to send password reset email to ${email}: ${error.message}`, {
-                code: error.code,
-                command: error.command,
-                response: error.response,
+            logger.error(`[Email] Failed to send password reset email to ${email}: ${error.message}`, {
+                stack: error.stack,
             });
             return false;
         }
