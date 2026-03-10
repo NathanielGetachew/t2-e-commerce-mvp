@@ -5,6 +5,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ShoppingCart } from "@/components/shopping-cart"
 import { Checkout } from "@/components/checkout"
+import { useCart } from "@/components/providers/cart-provider"
 import type { User } from "@/app/auth/actions"
 
 interface ProductDetailClientProps {
@@ -14,6 +15,7 @@ interface ProductDetailClientProps {
 }
 
 export function ProductDetailClient({ user, isAdmin, children }: ProductDetailClientProps) {
+    const { totalItems } = useCart()
     const [cartOpen, setCartOpen] = useState(false)
     const [checkoutOpen, setCheckoutOpen] = useState(false)
 
@@ -22,6 +24,7 @@ export function ProductDetailClient({ user, isAdmin, children }: ProductDetailCl
             <Header
                 user={user}
                 isAdmin={isAdmin}
+                cartCount={totalItems}
                 onCartClick={() => setCartOpen(true)}
             />
 

@@ -226,5 +226,5 @@ export async function uploadImage(
         const err = response.error || 'Failed to upload image'
         return { success: false, error: typeof err === 'string' ? err : JSON.stringify(err) }
     }
-    return { success: true, url: getImageUrl((response.data as { url: string })?.url) }
+    return { success: true, url: (response.data as { url: string })?.url }
 }
