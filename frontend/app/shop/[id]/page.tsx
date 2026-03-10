@@ -18,6 +18,7 @@ interface DetailProduct {
   price: number
   originalPrice?: number
   images: string[]
+  image?: string
   description?: string
   category?: string
   specifications?: Record<string, string>
@@ -39,12 +40,14 @@ async function getProductById(id: string): Promise<DetailProduct | null> {
   }
 
   const p = response.data.product as any
+  const images = (p.images || []).map(getImageUrl)
   return {
     id: p.id,
     name: p.name,
     price: (p.singlePriceCents || 0) / 100,
     originalPrice: p.originalPriceCents ? p.originalPriceCents / 100 : undefined,
-    images: (p.images || []).map(getImageUrl),
+    images: images,
+    image: images[0] || undefined,
     description: p.description || undefined,
     category: p.category ? p.category.name : (p.categoryId || undefined),
     specifications: p.specifications || undefined,
