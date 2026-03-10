@@ -1,16 +1,14 @@
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
 import { getUser } from "@/app/auth/actions"
 import { notFound, redirect } from "next/navigation"
 import { PriceDisplay } from "@/components/product/price-display"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ProductActions } from "@/components/product/product-actions"
 import { serverFetch } from "@/lib/server-api"
 import { ChevronLeft, Info, Search, Tag } from "lucide-react"
 import Link from "next/link"
+import { ProductDetailClient } from "@/components/shop/product-detail-client"
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +24,13 @@ interface DetailProduct {
   bulkPricing?: { minQty: number; price: number }[]
 }
 
+const getImageUrl = (url?: string): string => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api(\/v\d+)?$/, '') || ''
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
+}
+
 async function getProductById(id: string): Promise<DetailProduct | null> {
   const response = await serverFetch(`/products/${id}`)
 
@@ -39,7 +44,7 @@ async function getProductById(id: string): Promise<DetailProduct | null> {
     name: p.name,
     price: (p.singlePriceCents || 0) / 100,
     originalPrice: p.originalPriceCents ? p.originalPriceCents / 100 : undefined,
-    images: p.images || [],
+    images: (p.images || []).map(getImageUrl),
     description: p.description || undefined,
     category: p.category ? p.category.name : (p.categoryId || undefined),
     specifications: p.specifications || undefined,
@@ -66,9 +71,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header user={user} isAdmin={isAdmin} />
-
+    <ProductDetailClient user={user} isAdmin={isAdmin}>
       <main className="flex-1 pt-24 pb-16 px-4 animate-in fade-in duration-500">
         <div className="container mx-auto max-w-6xl">
           {/* Back Navigation */}
@@ -177,8 +180,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </Card>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </ProductDetailClient>
   )
 }
