@@ -5,3 +5,4 @@
 
 # Documents
 *.md
+!README.md
