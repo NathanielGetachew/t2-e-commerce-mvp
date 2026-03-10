@@ -39,7 +39,7 @@ export interface ProductProposal {
 const getImageUrl = (url?: string): string => {
     if (!url) return ''
     if (url.startsWith('http')) return url
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || ''
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api(\/v\d+)?$/, '') || ''
     return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
 }
 

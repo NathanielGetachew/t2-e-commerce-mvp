@@ -11,6 +11,7 @@ import { X, CreditCard, CheckCircle } from "lucide-react"
 import { useCart } from "@/components/providers/cart-provider"
 
 import { recordCommission } from "@/app/actions/affiliate-actions"
+import { createOrder } from "@/app/actions/order-actions"
 
 interface CheckoutProps {
   onClose: () => void
@@ -51,32 +52,23 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
 
       console.log("[v0] Submitting order payload:", payload)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Note: In a real app, you'd ensure the user's JWT is passed automatically via cookies
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
+      const result = await createOrder(payload)
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || result.message || 'Failed to initialize payment');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to initialize payment');
       }
 
-      console.log("[v0] Checkout URL received:", result.data.checkoutUrl)
+      console.log("[v0] Checkout URL received:", result.checkoutUrl)
 
       // Record commission if referral code is present 
-      // Note: Ideal architectural place for this is the backend webhook, but keeping it here for MVP parity.
       if (couponCode) {
         await recordCommission(couponCode, totalPrice)
       }
 
       // Redirect user to Chapa
-      window.location.href = result.data.checkoutUrl;
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
 
     } catch (error: any) {
       console.error("Payment initialization error:", error);
