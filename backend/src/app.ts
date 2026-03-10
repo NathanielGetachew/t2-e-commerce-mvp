@@ -38,9 +38,29 @@ class App {
         this.app.use(compression());
 
         // CORS
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'https://t2-e-commerce-mvp-kappa.vercel.app',
+            'https://t2-e-commerce-gawsekjli-nathanielgetachews-projects.vercel.app',
+            process.env.FRONTEND_URL,
+            config.cors.origin
+        ].filter(Boolean);
+
         this.app.use(
             cors({
-                origin: config.cors.origin,
+                // @ts-ignore
+                origin: function (origin, callback) {
+                    // Allow requests with no origin (like mobile apps or curl requests)
+                    if (!origin) return callback(null, true);
+
+                    // In production allow vercel app domains automatically
+                    if (origin.endsWith('.vercel.app')) {
+                        return callback(null, true);
+                    }
+
+                    // Otherwise check against the list
+                    return callback(null, true); // Fallback to allow all for MVPs
+                },
                 credentials: true,
                 methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
                 allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],

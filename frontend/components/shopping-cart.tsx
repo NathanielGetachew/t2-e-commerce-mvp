@@ -90,7 +90,7 @@ export function ShoppingCart({ onClose, onCheckout }: ShoppingCartProps) {
                 <div className="flex gap-4">
                   <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
                     <img
-                      src={item.product.image || "/placeholder.svg"}
+                      src={item.product.image ? (item.product.image.startsWith('http') ? item.product.image : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || ''}${item.product.image.startsWith('/') ? '' : '/'}${item.product.image}`) : "/placeholder.svg"}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg" }}
