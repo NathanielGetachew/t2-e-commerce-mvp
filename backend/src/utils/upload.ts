@@ -10,6 +10,13 @@ cloudinary.config({
     api_secret: config.cloudinary.apiSecret,
 });
 
+// Debug: Log config status (masked)
+console.log('Cloudinary Config Status:', {
+    cloud_name: config.cloudinary.cloudName || 'MISSING',
+    api_key: config.cloudinary.apiKey ? (config.cloudinary.apiKey === 'YOUR_15_DIGIT_API_KEY_HERE' ? 'PLACEHOLDER' : 'SET') : 'MISSING',
+    api_secret: config.cloudinary.apiSecret ? 'SET' : 'MISSING',
+});
+
 // Configure Cloudinary storage
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
