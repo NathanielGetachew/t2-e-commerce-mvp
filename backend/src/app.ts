@@ -30,7 +30,9 @@ class App {
         this.app.use(requestId);
 
         // Security headers
-        this.app.use(helmet());
+        this.app.use(helmet({
+            crossOriginResourcePolicy: { policy: "cross-origin" }
+        }));
 
         // Response compression (gzip/brotli)
         this.app.use(compression());
