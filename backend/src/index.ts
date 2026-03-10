@@ -2,11 +2,15 @@ import app from './app';
 import config from './config/env';
 import Database from './config/database';
 import { logger } from './utils/logger';
+import { createSuperAdminOnStartup } from './utils/createSuperAdmin';
 
 async function startServer() {
     try {
         // Connect to database
         await Database.connect();
+
+        // Auto-create super admin if env vars are present
+        await createSuperAdminOnStartup();
 
         // Start server
         const server = app.listen(config.port, () => {
