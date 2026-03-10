@@ -77,12 +77,12 @@ router.get('/:id', ProductController.getProduct);
 /**
  * @route   POST /api/products
  * @desc    Create a new product
- * @access  Admin only
+ * @access  Super Admin only
  */
 router.post(
     '/',
     authenticate,
-    adminOnly,
+    superAdminOnly,
     validate(productWithTiersSchema),
     ProductController.createProduct
 );
@@ -90,12 +90,12 @@ router.post(
 /**
  * @route   PATCH /api/products/:id
  * @desc    Update a product
- * @access  Admin only
+ * @access  Super Admin only
  */
 router.patch(
     '/:id',
     authenticate,
-    adminOnly,
+    superAdminOnly,
     validate(productUpdateSchema),
     ProductController.updateProduct
 );
@@ -103,9 +103,9 @@ router.patch(
 /**
  * @route   DELETE /api/products/:id
  * @desc    Delete a product (soft delete)
- * @access  Admin only
+ * @access  Super Admin only
  */
-router.delete('/:id', authenticate, adminOnly, ProductController.deleteProduct);
+router.delete('/:id', authenticate, superAdminOnly, ProductController.deleteProduct);
 
 /**
  * @route   POST /api/products/upload-image

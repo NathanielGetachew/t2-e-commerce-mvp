@@ -221,21 +221,37 @@ export function AdminInventory({ user }: AdminInventoryProps) {
         }
         setCreateError(null)
         setIsCreating(true)
-        const result = await createProduct({
+
+        const productData = {
             name: addForm.name,
             description: addForm.description,
             price: Number(addForm.price),
             images: addForm.images || [],
             stock: addForm.stock ?? (addForm.inStock !== false ? 1 : 0),
-        })
-        setIsCreating(false)
-        if (result.success) {
-            setIsAddOpen(false)
-            setAddForm(EMPTY_FORM)
-            loadData()
-            toast.success("Product created successfully!")
+        }
+
+        if (isSuperAdmin) {
+            const result = await createProduct(productData)
+            setIsCreating(false)
+            if (result.success) {
+                setIsAddOpen(false)
+                setAddForm(EMPTY_FORM)
+                loadData()
+                toast.success("Product created successfully!")
+            } else {
+                setCreateError(result.error || 'Failed to create product')
+            }
         } else {
-            setCreateError(result.error || 'Failed to create product')
+            const result = await proposeProduct("add", { productData })
+            setIsCreating(false)
+            if (result.success !== false && !result.error) {
+                setIsAddOpen(false)
+                setAddForm(EMPTY_FORM)
+                loadData()
+                toast.success("Product creation proposal submitted for Super Admin approval.")
+            } else {
+                setCreateError(result.error || 'Failed to submit proposal')
+            }
         }
     }
 
@@ -585,7 +601,7 @@ export function AdminInventory({ user }: AdminInventoryProps) {
                             return (
                                 <Card key={proposal.id} className="overflow-hidden">
                                     <div className={`h-1 w-full ${proposal.type === 'add' ? 'bg-emerald-500' :
-                                            proposal.type === 'update' ? 'bg-blue-500' : 'bg-red-500'
+                                        proposal.type === 'update' ? 'bg-blue-500' : 'bg-red-500'
                                         }`} />
                                     <CardContent className="p-4 space-y-3">
                                         <div className="flex justify-between items-start gap-2">
