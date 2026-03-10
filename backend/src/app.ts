@@ -38,14 +38,6 @@ class App {
         this.app.use(compression());
 
         // CORS
-        const allowedOrigins = [
-            'http://localhost:3000',
-            'https://t2-e-commerce-mvp-kappa.vercel.app',
-            'https://t2-e-commerce-gawsekjli-nathanielgetachews-projects.vercel.app',
-            process.env.FRONTEND_URL,
-            config.cors.origin
-        ].filter(Boolean);
-
         this.app.use(
             cors({
                 // @ts-ignore
