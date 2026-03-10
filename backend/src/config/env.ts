@@ -27,6 +27,11 @@ interface Config {
         secretKey: string;
         webhookSecret: string;
     };
+    cloudinary: {
+        cloudName: string;
+        apiKey: string;
+        apiSecret: string;
+    };
 }
 
 const config: Config = {
@@ -52,6 +57,11 @@ const config: Config = {
         publicKey: process.env.CHAPA_PUBLIC_KEY || '',
         secretKey: process.env.CHAPA_SECRET_KEY || '',
         webhookSecret: process.env.CHAPA_WEBHOOK_SECRET || '',
+    },
+    cloudinary: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+        apiKey: process.env.CLOUDINARY_API_KEY || '',
+        apiSecret: process.env.CLOUDINARY_API_SECRET || '',
     }
 };
 

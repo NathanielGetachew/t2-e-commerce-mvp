@@ -173,7 +173,7 @@ export class ProductController {
                 return ResponseHandler.error(res, 'No file uploaded', 400);
             }
 
-            const imageUrl = getFileUrl(req.file.filename);
+            const imageUrl = getFileUrl(req.file);
 
             return ResponseHandler.success(res, { url: imageUrl }, 'Image uploaded successfully');
         } catch (error: any) {

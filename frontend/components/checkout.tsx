@@ -128,7 +128,7 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
                           required
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          placeholder="Abebe"
+                          placeholder="John"
                         />
                       </div>
                       <div>
@@ -137,7 +137,7 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
                           required
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          placeholder="Kebede"
+                          placeholder="Doe"
                         />
                       </div>
                     </div>
@@ -149,7 +149,7 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="abebe@email.com"
+                        placeholder="john.doe@example.com"
                       />
                     </div>
 
@@ -160,7 +160,7 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
                         required
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="0911234567"
+                        placeholder="09..."
                         pattern="[0-9]{10}"
                       />
                       <p className="text-xs text-muted-foreground mt-1">{"Format: 09xxxxxxxx or 07xxxxxxxx"}</p>
@@ -172,7 +172,7 @@ export function Checkout({ onClose, onSuccess }: CheckoutProps) {
                         required
                         value={formData.address}
                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder="Bole, Addis Ababa"
+                        placeholder="Delivery Address"
                       />
                     </div>
 

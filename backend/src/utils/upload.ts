@@ -1,43 +1,28 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import config from '../config/env';
 
-// Ensure upload directory exists
-const uploadDir = config.upload.uploadDir;
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (_req, file, cb) => {
-        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName);
-    },
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: config.cloudinary.cloudName,
+    api_key: config.cloudinary.apiKey,
+    api_secret: config.cloudinary.apiSecret,
 });
 
-// File filter
-const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    // Allowed extensions
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-    const ext = path.extname(file.originalname).toLowerCase();
-
-    if (allowedExtensions.includes(ext)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type. Only images are allowed.'));
-    }
-};
+// Configure Cloudinary storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 't2-ecommerce/products',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+        transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
+    } as any, // Cast to any because of potential type mismatches in different versions
+});
 
 // Create multer upload instance
 export const upload = multer({
     storage,
-    fileFilter,
     limits: {
         fileSize: config.upload.maxFileSize, // 5MB default
     },
@@ -45,17 +30,20 @@ export const upload = multer({
 
 /**
  * Get public URL for uploaded file
+ * With Cloudinary, the URL is stored directly in the database, 
+ * but this helper can return the URL from the file object.
  */
-export function getFileUrl(filename: string): string {
-    return `/uploads/${filename}`;
+export function getFileUrl(file: any): string {
+    return file.path || file.url;
 }
 
 /**
- * Delete uploaded file
+ * Delete uploaded file from Cloudinary
  */
-export async function deleteFile(filename: string): Promise<void> {
-    const filePath = path.join(uploadDir, filename);
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+export async function deleteFile(publicId: string): Promise<void> {
+    try {
+        await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+        console.error('Error deleting file from Cloudinary:', error);
     }
 }
